@@ -1,6 +1,6 @@
 #include "rigidbodyentity.hpp"
 
-RigidBodyEntity::RigidBodyEntity(Model entityModel, btVector3 defaultPos, CollisionShapeType collisionShapeType, float mass, btVector3 boxShape) : entityModel(entityModel), collisionShapeType(collisionShapeType) {
+RigidBodyEntity::RigidBodyEntity(const Model& entityModel, btVector3 defaultPos, CollisionShapeType collisionShapeType, float mass, btVector3 boxShape) : entityModel(entityModel), collisionShapeType(collisionShapeType) {
     // build collision shape (box for rn)
     this->defaultPos = defaultPos;
     this->mass = mass;

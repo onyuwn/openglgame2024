@@ -16,7 +16,7 @@ void Player::initialize() {
 
     btTransform startTransform;
     startTransform.setIdentity();
-    startTransform.setOrigin(btVector3(0, 1, 0));
+    startTransform.setOrigin(btVector3(2, 2, 2));
 
     btDefaultMotionState* motionstate = new btDefaultMotionState(startTransform);
 

@@ -104,13 +104,12 @@ int main()
     Model terrainModel("resources/terrain.obj");
     Model gModel("resources/g.obj");
     stbi_set_flip_vertically_on_load(false);
-
+    Model trashBagModel("resources/trash/trashbag.obj");
     Model arrowsModel("resources/g2.obj");
     Model deskModel("resources/desk/desk.obj");
-    Model tableModel("resources/table/table.obj");
-    Model trashBagModel("resources/trash/trashbag.obj");
-    Model kitchenModel("resources/buildings/kitchen/kitcheninterior1.obj");
-    Model boxModel("resources/box.obj");
+    Model kitchenModel("resources/buildings/kitchen/kitcheninterior2.obj");
+    Model kitchenItems("resources/buildings/kitchen/kitchenItems1.obj");
+    Model kitchenDoors("resources/buildings/kitchen/kitchendoors1.obj");
 
     Piggy piggy("piggy1", basicShader);
     piggy.initialize();
@@ -122,8 +121,13 @@ int main()
     
     Terrain kitchen(kitchenModel);
     kitchen.initTerrain();
+
     RigidBodyEntity containerRigidBody(containerModel);
     containerRigidBody.initialize();
+
+    //RigidBodyEntity trashBagRigidBody(trashBagModel, btVector3(-10, 1, -10), MESH); // todo wrap this in gameobject
+    //trashBagRigidBody.initialize();
+
     btDiscreteDynamicsWorld* dynamicsWorld;
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
     btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -138,6 +142,7 @@ int main()
     kitchen.addToWorld(dynamicsWorld);
     player.addToWorld(dynamicsWorld);
     piggy.addToWorld(dynamicsWorld);
+    //trashBagRigidBody.addToWorld(dynamicsWorld);
     dynamicsWorld->setGravity(btVector3(0,-9.81f,0));
     containerRigidBody.entityRigidBody->activate(true);
 
@@ -172,9 +177,14 @@ int main()
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         basicShader.setMat4("model", model);
         kitchen.render(basicShader);
+        kitchenItems.draw(basicShader);
+        model = glm::rotate(model, glm::radians(1.0f * currentFrame), glm::vec3(0.0f, 1.0f, 0.0f));
+        basicShader.setMat4("model", model);
+        kitchenDoors.draw(basicShader);
 
         model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
         basicShader.setMat4("model", model);
+        //trashBagRigidBody.render(basicShader);
         gModel.draw(basicShader);
 
         model = glm::translate(model, glm::vec3(10.0f, -0.5f, 2.0f));
@@ -182,28 +192,8 @@ int main()
         basicShader.setMat4("model", model);
         deskModel.draw(basicShader);
 
-        model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 2.0f));
-        model = glm::scale(model, glm::vec3(.75f, .75f, .75f));
-        basicShader.setMat4("model", model);
-        tableModel.draw(basicShader);
-
-        model = glm::translate(model, glm::vec3(-12.0f, 0.0f, -4.0f));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        model = glm::rotate(model, glm::radians(100.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        basicShader.setMat4("model", model);
-        trashBagModel.draw(basicShader);
-
-        model = glm::translate(model, glm::vec3(-2, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        basicShader.setMat4("model", model);
-        trashBagModel.draw(basicShader);
-
-        model = glm::translate(model, glm::vec3(-2, 0.0f, -1.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        basicShader.setMat4("model", model);
-        trashBagModel.draw(basicShader);
-
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+        model = glm::translate(model, glm::vec3(10.0f, -0.5f, 2.0f));
         containerRigidBody.render(basicShader);
 
         piggy.render(deltaTime);

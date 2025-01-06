@@ -7,6 +7,10 @@ Model::Model(char *path) {
     loadModel(path);
 }
 
+Model::Model(const Model& x) : meshes(x.meshes) {
+    std::cout << "copy" << x.meshes.size() << std::endl;
+}
+
 void Model::draw(Shader &shader) {
     for(unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].draw(shader);

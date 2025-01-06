@@ -14,6 +14,8 @@ class Model
 {
     public:
         Model(char *path);
+        Model(const Model& x);
+        Model& operator=(const Model& x);
         void draw(Shader &shader);
         Mesh getMesh();
         std::vector<Mesh> getMeshes();
