@@ -2,7 +2,6 @@
 #define PIGGY_HPP
 #include <string>
 #include <vector>
-#include <glm/glm.hpp>
 #include "model.hpp"
 #include "shader.hpp"
 #include "rigidbodyentity.hpp"
@@ -10,6 +9,7 @@
 #include "UIElement.hpp"
 #include "collisionshapetype.hpp"
 #include "gameobject.hpp"
+#include "gameobjectinteractiontype.hpp"
 
 class Piggy : public GameObject {
     public:
@@ -23,10 +23,14 @@ class Piggy : public GameObject {
         glm::mat4 modelMatrix;
         Piggy(std::string name, Shader &shader);
         void render(float deltaTime) override;
-        std::string getInteraction() override;
+        GameObjectInteractionType getInteraction() override;
+        std::string getDialogueLine() override;
         glm::vec3 getPos();
+        void setPos(std::function<glm::vec3()> posCallback) override;
         void initialize() override;
         void addToWorld(btDynamicsWorld * world);
+        void applyForce(glm::vec3 force) override;
+        void toggleRigidBody() override;
 };
 
 #endif

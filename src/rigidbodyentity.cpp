@@ -99,20 +99,31 @@ glm::vec3 RigidBodyEntity::getPos() {
     return glm::vec3(curPos.x(), curPos.y(), curPos.z());
 }
 
-void RigidBodyEntity::render(Shader &shader, glm::mat4 model) {
+void RigidBodyEntity::render(Shader &shader, glm::mat4 model, bool positionOverride) {
     shader.use();
-    btTransform curTransform = this->entityRigidBody->getWorldTransform();
-    btVector3 curPos = curTransform.getOrigin();
-    btQuaternion curRot = curTransform.getRotation();
-    model = glm::translate(model, glm::vec3(curPos.x(), curPos.y(), curPos.z()));
-    glm::quat glmRot(curRot.w(), curRot.x(), curRot.y(), curRot.z());
-    // Convert glm::quat to glm::mat4 (rotation matrix)
-    glm::mat4 rotationMatrix = glm::toMat4(glmRot);
-    model = model * rotationMatrix;
+    if(positionOverride) {
+        this->entityRigidBody->activate(false);
+    } else {
+        btTransform curTransform = this->entityRigidBody->getWorldTransform();
+        btVector3 curPos = curTransform.getOrigin();
+        btQuaternion curRot = curTransform.getRotation();
+        model = glm::translate(model, glm::vec3(curPos.x(), curPos.y(), curPos.z()));
+        glm::quat glmRot(curRot.w(), curRot.x(), curRot.y(), curRot.z());
+        // Convert glm::quat to glm::mat4 (rotation matrix)
+        glm::mat4 rotationMatrix = glm::toMat4(glmRot);
+        model = model * rotationMatrix;
+    }
     shader.setMat4("model", model);
     this->entityModel.draw(shader);
 }
 
 void RigidBodyEntity::activateInteraction() {
     std::cout << "HITTTT";
+}
+
+void RigidBodyEntity::setPos(glm::vec3 newPos) {
+    this->defaultPos = btVector3(newPos.x, newPos.y, newPos.z);
+    btTransform currentTransform = this->entityRigidBody->getWorldTransform();
+    currentTransform.setOrigin(this->defaultPos);
+    this->entityRigidBody->setWorldTransform(currentTransform);
 }

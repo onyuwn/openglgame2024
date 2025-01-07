@@ -15,6 +15,7 @@
 #include "piggy.hpp"
 #include "uimaster.hpp"
 #include "gameobject.hpp"
+#include "gameobjectinteractiontype.hpp"
 
 class Player { // todo: inherit rigid body entity
     public:
@@ -30,12 +31,15 @@ class Player { // todo: inherit rigid body entity
         void interact();
         bool checkGrounded();
         glm::vec3 getPlayerPos();
+        glm::vec3 getPlayerHandPos();
     private:
         Camera &camera;
         btDiscreteDynamicsWorld *world;
         bool interactRequested;
         UIMaster &uiCallback;
         bool initialized;
+        GameObject* heldItem;
+        bool itemInHand;
 };
 
 #endif

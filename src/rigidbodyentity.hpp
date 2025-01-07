@@ -15,13 +15,13 @@ class RigidBodyEntity {
     public:
         btCollisionShape* entityCollisionShape;
         btRigidBody* entityRigidBody;
-        // agh needs to be pass by reference for things that don't wrap this? (piggy cant be pass by reference. hm)
         RigidBodyEntity(const Model& entityModel, btVector3 defaultPos = btVector3(0,100,0), CollisionShapeType collisionShapeType = BOX, float mass = 1.0, btVector3 boxShape = btVector3(1.0, 1.0, 1.0));
-        void render(Shader &shader, glm::mat4 model = glm::mat4(1.0));
+        void render(Shader &shader, glm::mat4 model = glm::mat4(1.0), bool positionOverride = false);
         void activateInteraction();
         void initialize(glm::mat4 model = glm::mat4(1.0));
         void addToWorld(btDynamicsWorld * world);
         glm::vec3 getPos();
+        void setPos(glm::vec3 newPos);
     private:
         CollisionShapeType collisionShapeType;
         Model entityModel;

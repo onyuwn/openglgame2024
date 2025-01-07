@@ -20,6 +20,7 @@
 #include "dialogue.hpp"
 #include "billboardentity.hpp"
 #include "piggy.hpp"
+#include "trashbag.hpp"
 #include "uimaster.hpp"
 
 #include <iostream>
@@ -104,7 +105,6 @@ int main()
     Model terrainModel("resources/terrain.obj");
     Model gModel("resources/g.obj");
     stbi_set_flip_vertically_on_load(false);
-    Model trashBagModel("resources/trash/trashbag.obj");
     Model arrowsModel("resources/g2.obj");
     Model deskModel("resources/desk/desk.obj");
     Model kitchenModel("resources/buildings/kitchen/kitcheninterior2.obj");
@@ -114,6 +114,9 @@ int main()
     Piggy piggy("piggy1", basicShader);
     piggy.initialize();
 
+    TrashBag trashBag1(basicShader);
+    trashBag1.initialize();
+
     stbi_set_flip_vertically_on_load(true);
 
     Model containerModel("resources/container.obj");
@@ -121,12 +124,6 @@ int main()
     
     Terrain kitchen(kitchenModel);
     kitchen.initTerrain();
-
-    RigidBodyEntity containerRigidBody(containerModel);
-    containerRigidBody.initialize();
-
-    //RigidBodyEntity trashBagRigidBody(trashBagModel, btVector3(-10, 1, -10), MESH); // todo wrap this in gameobject
-    //trashBagRigidBody.initialize();
 
     btDiscreteDynamicsWorld* dynamicsWorld;
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
@@ -138,13 +135,11 @@ int main()
     Player player(camera, window, dynamicsWorld, ui);
     player.initialize();
 
-    containerRigidBody.addToWorld(dynamicsWorld);
     kitchen.addToWorld(dynamicsWorld);
     player.addToWorld(dynamicsWorld);
     piggy.addToWorld(dynamicsWorld);
-    //trashBagRigidBody.addToWorld(dynamicsWorld);
+    trashBag1.addToWorld(dynamicsWorld);
     dynamicsWorld->setGravity(btVector3(0,-9.81f,0));
-    containerRigidBody.entityRigidBody->activate(true);
 
     bool dialogueSkipped = false;
     bool dialogueActivated = false;
@@ -178,14 +173,12 @@ int main()
         basicShader.setMat4("model", model);
         kitchen.render(basicShader);
         kitchenItems.draw(basicShader);
-        model = glm::rotate(model, glm::radians(1.0f * currentFrame), glm::vec3(0.0f, 1.0f, 0.0f));
         basicShader.setMat4("model", model);
         kitchenDoors.draw(basicShader);
 
         model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
         basicShader.setMat4("model", model);
-        //trashBagRigidBody.render(basicShader);
-        gModel.draw(basicShader);
+        trashBag1.render(deltaTime);
 
         model = glm::translate(model, glm::vec3(10.0f, -0.5f, 2.0f));
         model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f));
@@ -194,7 +187,6 @@ int main()
 
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         model = glm::translate(model, glm::vec3(10.0f, -0.5f, 2.0f));
-        containerRigidBody.render(basicShader);
 
         piggy.render(deltaTime);
         gBillboard.render(view, projection, camera.Up, camera.Right); // follows pig

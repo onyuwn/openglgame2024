@@ -61,18 +61,28 @@ void Player::processInput(GLFWwindow *window, float deltaTime)
     btVector3 force(0, 0, 0);  // Reset force each frame
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        this->playerRigidBody->setActivationState(1);
+        this->playerRigidBody->activate(true);
         force += btFront * velocity * 10000;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        this->playerRigidBody->setActivationState(1);
+        this->playerRigidBody->activate(true);
         force += btFront * velocity * -10000;
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        this->playerRigidBody->setActivationState(1);
+        this->playerRigidBody->activate(true);
         force += btRight * velocity * -10000;
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        this->playerRigidBody->setActivationState(1);
+        this->playerRigidBody->activate(true);
         force += btRight * velocity * 10000;
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && checkGrounded()) {
+        this->playerRigidBody->setActivationState(1);
+        this->playerRigidBody->activate(true);
         force += btVector3(0, 1, 0) * velocity * 50000;
     }
     if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && !interactRequested) {
@@ -128,20 +138,37 @@ void Player::interact() {
     glm::vec3 outEnd = outOrigin + this->camera.Front * 100.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
     world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
-    if(RayCallback.hasHit()) {
+    if(RayCallback.hasHit() && !itemInHand) {
         GameObject* hitObject = (GameObject*)RayCallback.m_collisionObject->getUserPointer(); // todo cast to generic gameobject
         if(hitObject != nullptr) {
-            std::string dialogLine = hitObject->getInteraction();
-            // if interaction returns something....
-            if(dialogLine == "\0") {
-                this->uiCallback.clearDialog();
-            } else {
-                std::cout << dialogLine << std::endl;
-                this->uiCallback.showDialog(dialogLine);
+            GameObjectInteractionType interactionType = hitObject->getInteraction();
+
+            if(interactionType == DIALOGUE) {
+                // if interaction returns something....
+                std::string dialogLine = hitObject->getDialogueLine();
+                if(dialogLine == "\0") {
+                    this->uiCallback.clearDialog();
+                } else {
+                    std::cout << dialogLine << std::endl;
+                    this->uiCallback.showDialog(dialogLine);
+                }
+            } else if(interactionType == HOLD_ITEM) {
+                hitObject->setPos([this]() { return getPlayerHandPos(); });
+                this->itemInHand = true;
+                this->heldItem = hitObject;
+            } else if(interactionType == THROW_ITEM) {
+                hitObject->applyForce(getPlayerHandPos()); // need to reactivate the rigid body of the interactive entity
             }
         } else {
             std::cout <<"NADA\n";
         }
+    } else if(itemInHand) { // throw that shit
+        this->heldItem->toggleRigidBody();
+        glm::vec3 throwingForce = this->camera.Front * 5.0f + glm::vec3(0,5,0);
+        this->heldItem->applyForce(throwingForce);
+        // apply force
+        this->heldItem = nullptr;
+        itemInHand = false;
     }
 }
 
@@ -150,4 +177,8 @@ glm::vec3 Player::getPlayerPos() {
     btVector3 curPos = curTransform.getOrigin();
     //btQuaternion curRot = curTransform.getRotation();
     return glm::vec3(curPos.x(), curPos.y(), curPos.z());
+}
+
+glm::vec3 Player::getPlayerHandPos() {
+    return getPlayerPos() + this->camera.Front * 2.0f;
 }

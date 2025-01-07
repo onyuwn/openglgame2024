@@ -35,7 +35,11 @@ void Piggy::render(float deltaTime) {
     piggyRigidBody.render(this->shader, glm::mat4(1.0));
 }
 
-std::string Piggy::getInteraction() {
+GameObjectInteractionType Piggy::getInteraction() {
+    return DIALOGUE;
+}
+
+std::string Piggy::getDialogueLine() {
     lineIdx++;
     if(lineIdx < lines.size()) {
         return this->lines[this->lineIdx];
@@ -44,6 +48,18 @@ std::string Piggy::getInteraction() {
     }
 }
 
+void Piggy::setPos(std::function<glm::vec3()> posCallback) {
+    // not needed
+}
+
 glm::vec3 Piggy::getPos() {
     return this->piggyRigidBody.getPos();
+}
+
+void Piggy::applyForce(glm::vec3 force) {
+    // not needed
+}
+
+void Piggy::toggleRigidBody() {
+    // not needed
 }

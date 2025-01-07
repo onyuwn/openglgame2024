@@ -2,12 +2,29 @@
 #define TRASHBAG_HPP
 
 #include "gameobject.hpp"
+#include "rigidbodyentity.hpp"
+#include "shader.hpp"
+#include "model.hpp"
+#include "collisionshapetype.hpp"
+#include "gameobjectinteractiontype.hpp"
 
 class TrashBag : public GameObject {
     public:
-        void render(float deltaTime) override;
-        std::string getInteraction() override;
+        TrashBag(Shader &shader);
         void initialize() override;
+        void addToWorld(btDynamicsWorld *world);
+        void render(float deltaTime) override;
+        GameObjectInteractionType getInteraction() override;
+        std::string getDialogueLine() override;
+        void setPos(std::function<glm::vec3()> posCallback) override;
+        void applyForce(glm::vec3 force) override;
+        void toggleRigidBody() override;
+        RigidBodyEntity trashBagRigidBody;
+    private:
+        Shader &shader;
+        bool initialized;
+        bool positionOverride;
+        std::function<glm::vec3()> positionCallback;
 };
 
 #endif
