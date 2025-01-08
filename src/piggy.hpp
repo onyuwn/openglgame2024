@@ -1,5 +1,6 @@
 #ifndef PIGGY_HPP
 #define PIGGY_HPP
+#define GLM_ENABLE_EXPERIMENTAL
 #include <string>
 #include <vector>
 #include "model.hpp"
@@ -14,14 +15,14 @@
 class Piggy : public GameObject {
     public:
         std::string name;
-        Shader shader;
+        Shader &shader;
         std::vector<std::string> lines;
         bool interacting;
         int lineIdx;
         bool initialized;
         RigidBodyEntity piggyRigidBody;
         glm::mat4 modelMatrix;
-        Piggy(std::string name, Shader &shader);
+        Piggy(std::string name, Shader &shader, Model &piggyModel);
         void render(float deltaTime) override;
         GameObjectInteractionType getInteraction() override;
         std::string getDialogueLine() override;
@@ -31,6 +32,9 @@ class Piggy : public GameObject {
         void addToWorld(btDynamicsWorld * world);
         void applyForce(glm::vec3 force) override;
         void toggleRigidBody() override;
+        void toggleState() override;
+    private:
+        std::function<glm::vec3()> positionCallback;
 };
 
 #endif

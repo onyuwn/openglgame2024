@@ -12,12 +12,14 @@ class UIMaster {
         UIMaster(unsigned int scrWidth, unsigned int scrHeight);
         void render(float deltaTime, float curTime);
         void addElement(UIElement newElement);
+        void addTextElement(UITextElement& newElement);
         void showDialog(std::string text);
         void clearDialog();
     private:
         unsigned int scrWidth;
         unsigned int scrHeight;
         std::vector<UIElement> elements;
+        std::vector<UITextElement> textElements;
         DialogueElement currentDialog;
         bool dialogShowing;
 };

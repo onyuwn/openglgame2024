@@ -15,7 +15,8 @@ class RigidBodyEntity {
     public:
         btCollisionShape* entityCollisionShape;
         btRigidBody* entityRigidBody;
-        RigidBodyEntity(const Model& entityModel, btVector3 defaultPos = btVector3(0,100,0), CollisionShapeType collisionShapeType = BOX, float mass = 1.0, btVector3 boxShape = btVector3(1.0, 1.0, 1.0));
+        RigidBodyEntity(Model& entityModel, btVector3 defaultPos = btVector3(0,1,0), CollisionShapeType collisionShapeType = BOX, float mass = 1.0, btVector3 boxShape = btVector3(1.0, 1.0, 1.0));
+        ~RigidBodyEntity();
         void render(Shader &shader, glm::mat4 model = glm::mat4(1.0), bool positionOverride = false);
         void activateInteraction();
         void initialize(glm::mat4 model = glm::mat4(1.0));
@@ -24,7 +25,7 @@ class RigidBodyEntity {
         void setPos(glm::vec3 newPos);
     private:
         CollisionShapeType collisionShapeType;
-        Model entityModel;
+        Model &entityModel;
         btVector3 defaultPos;
         btVector3 boundingBox;
         float mass;

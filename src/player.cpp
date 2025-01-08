@@ -146,6 +146,7 @@ void Player::interact() {
             if(interactionType == DIALOGUE) {
                 // if interaction returns something....
                 std::string dialogLine = hitObject->getDialogueLine();
+                hitObject->setPos([this]() { return getPlayerHandPos(); });
                 if(dialogLine == "\0") {
                     this->uiCallback.clearDialog();
                 } else {
@@ -158,6 +159,9 @@ void Player::interact() {
                 this->heldItem = hitObject;
             } else if(interactionType == THROW_ITEM) {
                 hitObject->applyForce(getPlayerHandPos()); // need to reactivate the rigid body of the interactive entity
+            } else if(interactionType == TOGGLE) {
+                std::cout << "TOGGLE REQUESTED" << std::endl;
+                hitObject->toggleState();
             }
         } else {
             std::cout <<"NADA\n";

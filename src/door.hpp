@@ -3,14 +3,15 @@
 
 #include "gameobject.hpp"
 #include "gameobjectinteractiontype.hpp"
+#include "doorrigidbody.hpp"
 #include "model.hpp"
 #include "shader.hpp"
-#include "rigidbodyentity.hpp"
+#include "model.hpp"
 #include <string>
 
 class Door : public GameObject { // use hinge constraint
     public:
-        Door();
+        Door(Shader &shader, Model &doorModel, glm::vec3 doorPos);
         void render(float deltaTime) override;
         void initialize() override;
         GameObjectInteractionType getInteraction() override;
@@ -18,11 +19,14 @@ class Door : public GameObject { // use hinge constraint
         virtual void setPos(std::function<glm::vec3()> posCallback) override;
         virtual void applyForce(glm::vec3 force) override;
         virtual void toggleRigidBody() override;
-        void open(float deltaTime, float curTime);
+        void toggleHinge(float deltaTime, float curTime);
         void addToWorld(btDynamicsWorld * world);
-        bool open;
+        void toggleState() override;
     private:
-        RigidBodyEntity doorRigidBody;
+        Shader &shader;
+        bool isOpen;
+        bool initialized;
+        DoorRigidBody doorRigidBody;
 
 };
 

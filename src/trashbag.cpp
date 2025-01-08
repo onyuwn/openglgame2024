@@ -1,7 +1,7 @@
 #include "trashbag.hpp"
 
-TrashBag::TrashBag(Shader &shader) : shader(shader),
-                                     trashBagRigidBody(Model("resources/trash/trashbag.obj"), btVector3(10,2,1)) {
+TrashBag::TrashBag(Shader &shader, Model &trashBagModel) : shader(shader),
+                                     trashBagRigidBody(trashBagModel, btVector3(10,2,1)) {
     this->initialized = false;
     this->positionOverride = false;
 }
@@ -66,3 +66,5 @@ void TrashBag::toggleRigidBody() {
     this->positionOverride = false;
     std::cout << "rigidbody toggled" << std::endl;
 }
+
+void TrashBag::toggleState() {}

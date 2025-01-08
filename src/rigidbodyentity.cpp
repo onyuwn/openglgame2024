@@ -1,38 +1,46 @@
 #include "rigidbodyentity.hpp"
 
-RigidBodyEntity::RigidBodyEntity(const Model& entityModel, btVector3 defaultPos, CollisionShapeType collisionShapeType, float mass, btVector3 boxShape) : entityModel(entityModel), collisionShapeType(collisionShapeType) {
+RigidBodyEntity::RigidBodyEntity(Model& entityModel, btVector3 defaultPos, CollisionShapeType collisionShapeType, float mass, btVector3 boxShape) : entityModel(entityModel), collisionShapeType(collisionShapeType) {
     // build collision shape (box for rn)
     this->defaultPos = defaultPos;
     this->mass = mass;
     this->initialized = false;
     this->boundingBox = boxShape;
+    std::cout << "init rigid body" << std::endl;
     // create rigid body
 } 
 
-void RigidBodyEntity::initialize(glm::mat4 model) {
+RigidBodyEntity::~RigidBodyEntity() {
+    if (this->entityRigidBody) {
+        delete this->entityRigidBody->getMotionState();
+        delete this->entityRigidBody;
+    }
+    if (this->entityCollisionShape) {
+        delete this->entityCollisionShape;
+    }
+}
 
+void RigidBodyEntity::initialize(glm::mat4 model) {
+    glm::vec3 meshOrigin(0.0f, 0.0f, 0.0f);
     if(this->collisionShapeType == BOX) {
         glm::vec3 minVertex(FLT_MAX, FLT_MAX, FLT_MAX);
         glm::vec3 maxVertex(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
         std::vector<Mesh> entityMeshes = this->entityModel.getMeshes();  // Get mesh data
-        //todo: find origin of mesh then:
-        // glm::vec3 meshOriginOffset(0.0f, 0.0f, 0.0f); 
         // Iterate through all vertices in the mesh to calculate the bounding box
         for (int h = 0; h < entityMeshes.size(); h++) {
             Mesh terrainMesh = entityMeshes[h];
             
             for (int i = 0; i < terrainMesh.vertices.size(); i++) {
                 glm::vec3 vertex = terrainMesh.vertices[i].Position;
-                
-                //vertex -= meshOriginOffset;
-
                 // Update the bounding box limits
                 minVertex = glm::min(minVertex, vertex);
                 maxVertex = glm::max(maxVertex, vertex);
             }
         }
 
+        meshOrigin = (minVertex + maxVertex) * 0.5f;
+        printf("meshorigin: %f, %f, %f\n", meshOrigin.x, meshOrigin.y, meshOrigin.z);
         // Calculate the size (width, height, depth) of the bounding box
         glm::vec3 size = maxVertex - minVertex;
 
@@ -89,6 +97,7 @@ void RigidBodyEntity::initialize(glm::mat4 model) {
 void RigidBodyEntity::addToWorld(btDynamicsWorld * world) {
     if(initialized) {
         world->addRigidBody(this->entityRigidBody);
+        this->entityRigidBody->setActivationState(1);
         this->entityRigidBody->activate(true);
     }
 }

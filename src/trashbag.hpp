@@ -10,7 +10,7 @@
 
 class TrashBag : public GameObject {
     public:
-        TrashBag(Shader &shader);
+        TrashBag(Shader &shader, Model &trashBagModel);
         void initialize() override;
         void addToWorld(btDynamicsWorld *world);
         void render(float deltaTime) override;
@@ -19,6 +19,7 @@ class TrashBag : public GameObject {
         void setPos(std::function<glm::vec3()> posCallback) override;
         void applyForce(glm::vec3 force) override;
         void toggleRigidBody() override;
+        void toggleState() override;
         RigidBodyEntity trashBagRigidBody;
     private:
         Shader &shader;

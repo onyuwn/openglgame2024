@@ -20,6 +20,7 @@
 #include "dialogue.hpp"
 #include "billboardentity.hpp"
 #include "piggy.hpp"
+#include "door.hpp"
 #include "trashbag.hpp"
 #include "uimaster.hpp"
 
@@ -94,15 +95,11 @@ int main()
         "resources/mainskybox/gradiesn.png",
         "resources/mainskybox/gradiesn.png",
     };
-
     Skybox mainSkybox(skyboxFaces);
-    
     stbi_set_flip_vertically_on_load(true);
 
     UIMaster ui(SCR_WIDTH, SCR_HEIGHT);
-
     Shader basicShader("src/shaders/basic.vs", "src/shaders/basic.fs");
-    Model terrainModel("resources/terrain.obj");
     Model gModel("resources/g.obj");
     stbi_set_flip_vertically_on_load(false);
     Model arrowsModel("resources/g2.obj");
@@ -110,12 +107,20 @@ int main()
     Model kitchenModel("resources/buildings/kitchen/kitcheninterior2.obj");
     Model kitchenItems("resources/buildings/kitchen/kitchenItems1.obj");
     Model kitchenDoors("resources/buildings/kitchen/kitchendoors1.obj");
+    Model piggyModel("resources/piggyiso.obj");
+    Model trashBagModel("resources/trash/trashbag.obj");
 
-    Piggy piggy("piggy1", basicShader);
+    UITextElement crosshair("resources/text/Angelic Peace.ttf", "X", 48);
+    ui.addTextElement(crosshair);
+    // models need to load separately from game objects
+    Piggy piggy("piggy1", basicShader, piggyModel);
     piggy.initialize();
 
-    TrashBag trashBag1(basicShader);
+    TrashBag trashBag1(basicShader, trashBagModel);
     trashBag1.initialize();
+
+    Door door1(basicShader, kitchenDoors, glm::vec3(8.7, 1.86, 10.42)); // just get these from blender
+    door1.initialize();
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -139,6 +144,7 @@ int main()
     player.addToWorld(dynamicsWorld);
     piggy.addToWorld(dynamicsWorld);
     trashBag1.addToWorld(dynamicsWorld);
+    door1.addToWorld(dynamicsWorld);
     dynamicsWorld->setGravity(btVector3(0,-9.81f,0));
 
     bool dialogueSkipped = false;
@@ -167,15 +173,11 @@ int main()
         basicShader.setMat4("view", view);
 
         // render the loaded model
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        basicShader.setMat4("model", model);
+        door1.render(deltaTime);
         kitchen.render(basicShader);
         kitchenItems.draw(basicShader);
-        basicShader.setMat4("model", model);
-        kitchenDoors.draw(basicShader);
 
+        glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
         basicShader.setMat4("model", model);
         trashBag1.render(deltaTime);

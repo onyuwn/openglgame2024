@@ -18,7 +18,7 @@ class Terrain {
         void initTerrain();
         void addToWorld(btDynamicsWorld * world);
     private:
-        Model terrainModel;
+        Model &terrainModel;
         btVector3 position;
         bool initialized;
 };

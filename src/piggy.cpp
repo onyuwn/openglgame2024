@@ -1,7 +1,7 @@
 #include "piggy.hpp"
 
-Piggy::Piggy(std::string name, Shader &shader) : name(name), interacting(false), shader(shader),
-                                                 piggyRigidBody(Model("resources/piggyiso.obj"), btVector3(1,2,-2), BOX) {
+Piggy::Piggy(std::string name, Shader &shader, Model &piggyModel) : name(name), interacting(false), shader(shader),
+                                                 piggyRigidBody(piggyModel, btVector3(5, 2, 15), BOX, 10.0f) {
     std::vector<std::string> linesTemp
     {
         "it's so\nover",
@@ -32,10 +32,31 @@ void Piggy::addToWorld(btDynamicsWorld * world) {
 }
 
 void Piggy::render(float deltaTime) {
-    piggyRigidBody.render(this->shader, glm::mat4(1.0));
+    if(this->interacting) { // position override
+        glm::vec3 direction = glm::normalize(this->positionCallback() - this->getPos());
+        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0), this->getPos());
+        glm::vec3 currentForward = glm::vec3(0.0f, 0.0f, 1.0f);
+        glm::vec3 axis = glm::cross(currentForward, direction);
+        float angle = acos(glm::dot(currentForward, direction));
+        if (glm::length(axis) > 0.0001f) {
+            // If the axis length is non-zero, we have a valid rotation
+            axis = glm::normalize(axis);
+
+            // Create the rotation matrix using the axis and angle
+            glm::mat4 rotationMatrix = glm::rotate(modelMatrix, angle, axis);
+
+            // Apply the rotation
+            modelMatrix = rotationMatrix * modelMatrix;
+        }
+        modelMatrix = glm::translate(modelMatrix, -this->getPos());
+        piggyRigidBody.render(this->shader, modelMatrix, true);
+    } else {
+        piggyRigidBody.render(this->shader, glm::mat4(1.0));
+    }
 }
 
 GameObjectInteractionType Piggy::getInteraction() {
+    this->interacting = true;
     return DIALOGUE;
 }
 
@@ -44,12 +65,13 @@ std::string Piggy::getDialogueLine() {
     if(lineIdx < lines.size()) {
         return this->lines[this->lineIdx];
     } else {
+        this->interacting = false;
         return "\0";
     }
 }
 
 void Piggy::setPos(std::function<glm::vec3()> posCallback) {
-    // not needed
+    this->positionCallback = posCallback; // used to look at player
 }
 
 glm::vec3 Piggy::getPos() {
@@ -62,4 +84,8 @@ void Piggy::applyForce(glm::vec3 force) {
 
 void Piggy::toggleRigidBody() {
     // not needed
+}
+
+void Piggy::toggleState() {
+    
 }
