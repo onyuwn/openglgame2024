@@ -39,13 +39,8 @@ void Piggy::render(float deltaTime) {
         glm::vec3 axis = glm::cross(currentForward, direction);
         float angle = acos(glm::dot(currentForward, direction));
         if (glm::length(axis) > 0.0001f) {
-            // If the axis length is non-zero, we have a valid rotation
             axis = glm::normalize(axis);
-
-            // Create the rotation matrix using the axis and angle
-            glm::mat4 rotationMatrix = glm::rotate(modelMatrix, angle, axis);
-
-            // Apply the rotation
+            glm::mat4 rotationMatrix = glm::rotate(modelMatrix, angle, glm::vec3(0,axis.y,0)); // important. probably a better way to do this with lookat
             modelMatrix = rotationMatrix * modelMatrix;
         }
         modelMatrix = glm::translate(modelMatrix, -this->getPos());

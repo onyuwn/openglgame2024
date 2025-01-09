@@ -146,7 +146,7 @@ void Player::interact() {
             if(interactionType == DIALOGUE) {
                 // if interaction returns something....
                 std::string dialogLine = hitObject->getDialogueLine();
-                hitObject->setPos([this]() { return getPlayerHandPos(); });
+                hitObject->setPos([this]() { return getPlayerPos(); });
                 if(dialogLine == "\0") {
                     this->uiCallback.clearDialog();
                 } else {

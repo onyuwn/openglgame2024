@@ -1,21 +1,35 @@
 #ifndef SCENE_HPP
 #define SCENE_HPP
+#define GLM_ENABLE_EXPERIMENTAL
 #include "gameobject.hpp"
+#include "skybox.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include "btBulletCollisionCommon.h"
+#include "btBulletDynamicsCommon.h"
+#include "model.hpp"
+#include "terrain.hpp"
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <vector>
 #include <string>
+#include <memory>
+#include <algorithm>
 
 class Scene {
     public:
-        virtual void render(std::string sceneName, float deltaTime, float curTime) = 0;
-        virtual void initialize(float &progressCallback) = 0;
-        virtual void addGameObject(GameObject gameObject) = 0;
+        virtual void render(float deltaTime, float curTime) = 0;
+        virtual void initialize(std::function<void(float)> progressCallback) = 0;
+        virtual void addGameObject(std::shared_ptr<GameObject> gameObject) = 0;
         virtual void removeGameObject() = 0; // todo: id system?
     private:
-        std::vector<GameObject> gameObjects;
+        std::vector<std::shared_ptr<GameObject>> gameObjects;
         std::string name;
-        //dynamics world
-        //add to world
-
+        std::shared_ptr<Skybox> skybox;
+        btDiscreteDynamicsWorld *world;
+        std::shared_ptr<Terrain> terrain;
+        bool initialized;
 };
 
 #endif

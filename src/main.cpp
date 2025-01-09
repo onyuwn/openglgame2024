@@ -23,6 +23,7 @@
 #include "door.hpp"
 #include "trashbag.hpp"
 #include "uimaster.hpp"
+#include "mainscene.hpp"
 
 #include <iostream>
 
@@ -146,6 +147,19 @@ int main()
     trashBag1.addToWorld(dynamicsWorld);
     door1.addToWorld(dynamicsWorld);
     dynamicsWorld->setGravity(btVector3(0,-9.81f,0));
+
+    float progress = 0.0f;
+    MainScene scene1("scene1");
+    scene1.initialize([&progress, &basicShader, &ui, &window](float newProgress) { // i tyhinks this workds lol
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        basicShader.use();
+        ui.render(deltaTime, 0.0f);
+        progress += newProgress;
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    });
 
     bool dialogueSkipped = false;
     bool dialogueActivated = false;
