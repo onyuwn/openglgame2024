@@ -44,7 +44,7 @@ void MainScene::initialize(std::function<void(float)> progressCallback) {
         "resources/mainskybox/gradiesn.png",
     };
     this->skybox = std::make_shared<Skybox>(skyboxFaces);
-    progressCallback(.1f);
+    progressCallback(.2f);
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
     btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
     btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -59,7 +59,7 @@ void MainScene::initialize(std::function<void(float)> progressCallback) {
     piggy->initialize();
     this->addGameObject(piggy);
     piggy->addToWorld(this->world);
-    progressCallback(.1f);
+    progressCallback(.2f);
 
     this->trashModel = std::make_shared<Model>((char*)"resources/trash/trashbag.obj");
     std::shared_ptr<TrashBag> trashBag = std::make_shared<TrashBag>(*basicShader, *trashModel);
@@ -73,7 +73,7 @@ void MainScene::initialize(std::function<void(float)> progressCallback) {
     door->initialize();
     this->addGameObject(door);
     door->addToWorld(world);
-    progressCallback(.1f);
+    progressCallback(.2f);
 
     // this->arrowsModel = std::make_shared<Model>((char*)"resources/g2.obj");
     // progressCallback(.1f);
@@ -81,17 +81,17 @@ void MainScene::initialize(std::function<void(float)> progressCallback) {
     this->kitchenItemsModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchenitems1.obj");
 
     this->kitchenModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitcheninterior2.obj");
-    progressCallback(.1f);
+    progressCallback(.05f);
     this->terrain = std::make_shared<Terrain>(*kitchenModel);
     terrain->initTerrain();
     terrain->addToWorld(world);
-    progressCallback(.15f);
+    progressCallback(.05f);
 
     this->player = std::make_shared<Player>(camera, this->world, ui);
     player->initialize();
     this->player->addToWorld(this->world);
 
-    progressCallback(.15f);
+    progressCallback(.1f);
     this->initialized = true;
     std::cout << "DONE" << std::endl;
 }
