@@ -95,11 +95,14 @@ int main()
     float progress = 0.0f;
     MainScene scene1("scene1", ui, camera);
     ProgressBar progressBar1;
-    scene1.initialize([&progress, &window, &progressBar1](float newProgress) { // i tyhinks this workds lol
+    crosshair.setText("Please be patient with me...");
+    scene1.initialize([&progress, &window, &progressBar1, &crosshair](float newProgress) { // i tyhinks this workds lol
+        float curTime = static_cast<float>(glfwGetTime());
         glClearColor(0.05f, 0.05f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         progress += newProgress;
         progressBar1.update(progress);
+        crosshair.render((float)SCR_WIDTH / 4, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 0.0, 0.0), curTime);
         glfwSwapBuffers(window);
         glfwPollEvents();
     });

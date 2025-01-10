@@ -64,6 +64,7 @@ void ProgressBar::update(float progress) {
     glBindTexture(GL_TEXTURE_2D, textureID);
     this->progressBarShader->setInt("uiTex", 0);
     this->progressBarShader->setFloat("progress", progress);
+    this->progressBarShader->setVec2("screenSize", glm::vec2(800,600));
     this->progressBarShader->setMat4("projection", glm::ortho(0.0f, 800.0f, 0.0f, 600.0f));
     this->uiMesh->draw(*this->progressBarShader);
 }
