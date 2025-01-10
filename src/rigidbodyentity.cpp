@@ -10,15 +10,15 @@ RigidBodyEntity::RigidBodyEntity(Model& entityModel, btVector3 defaultPos, Colli
     // create rigid body
 } 
 
-RigidBodyEntity::~RigidBodyEntity() {
-    if (this->entityRigidBody) {
-        delete this->entityRigidBody->getMotionState();
-        delete this->entityRigidBody;
-    }
-    if (this->entityCollisionShape) {
-        delete this->entityCollisionShape;
-    }
-}
+// RigidBodyEntity::~RigidBodyEntity() {
+//     if (this->entityRigidBody) {
+//         delete this->entityRigidBody->getMotionState();
+//         delete this->entityRigidBody;
+//     }
+//     if (this->entityCollisionShape) {
+//         delete this->entityCollisionShape;
+//     }
+// }
 
 void RigidBodyEntity::initialize(glm::mat4 model) {
     glm::vec3 meshOrigin(0.0f, 0.0f, 0.0f);

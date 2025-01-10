@@ -1,6 +1,6 @@
 #include "player.hpp"
 
-Player::Player(Camera &camera, GLFWwindow *window, btDiscreteDynamicsWorld *world, UIMaster &uiCallback) : camera(camera), uiCallback(uiCallback) {
+Player::Player(Camera &camera, btDiscreteDynamicsWorld *world, UIMaster &uiCallback) : camera(camera), uiCallback(uiCallback) {
     this->camera = camera;
     this->world = world;
         // build collision shape (box for rn)
@@ -33,7 +33,7 @@ void Player::initialize() {
     this->initialized=true;
 }
 
-void Player::addToWorld(btDynamicsWorld * world) {
+void Player::addToWorld(btDiscreteDynamicsWorld * world) {
     world->addRigidBody(this->playerRigidBody);
 }
 

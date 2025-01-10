@@ -29,7 +29,7 @@ class Piggy : public GameObject {
         glm::vec3 getPos();
         void setPos(std::function<glm::vec3()> posCallback) override;
         void initialize() override;
-        void addToWorld(btDynamicsWorld * world);
+        void addToWorld(btDiscreteDynamicsWorld * world);
         void applyForce(glm::vec3 force) override;
         void toggleRigidBody() override;
         void toggleState() override;

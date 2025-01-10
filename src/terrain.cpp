@@ -9,6 +9,8 @@ void Terrain::initTerrain() {
     if(!this->terrainModel.isLoaded()) {
         std::cout << "terrain mesh not loaded" << std::endl;
         return;
+    } else {
+        std::cout << "loading terrain mesh....." << std::endl;
     }
     // create terrain collision mesh
     btTriangleMesh* triMesh = new btTriangleMesh();
@@ -50,7 +52,7 @@ void Terrain::initTerrain() {
     this->initialized = true;
 }
 
-void Terrain::addToWorld(btDynamicsWorld * world) {
+void Terrain::addToWorld(btDiscreteDynamicsWorld * world) {
     if(initialized) {
         world->addRigidBody(this->terrainRigidBody);
         this->terrainRigidBody->activate(true);

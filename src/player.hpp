@@ -23,11 +23,11 @@ class Player { // todo: inherit rigid body entity
         btRigidBody* playerRigidBody;
         glm::vec3 position;
 
-        Player(Camera &camera, GLFWwindow *window, btDiscreteDynamicsWorld *world, UIMaster &uiCallback); // todo: add player model
+        Player(Camera &camera, btDiscreteDynamicsWorld *world, UIMaster &uiCallback); // todo: add player model
         void initialize();
         void UpdatePlayer(float deltaTime, GLFWwindow *window);
         void processInput(GLFWwindow *window, float deltaTime);
-        void addToWorld(btDynamicsWorld * world);
+        void addToWorld(btDiscreteDynamicsWorld * world);
         void interact();
         bool checkGrounded();
         glm::vec3 getPlayerPos();

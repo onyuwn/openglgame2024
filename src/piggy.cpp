@@ -24,7 +24,7 @@ void Piggy::initialize() {
     this->initialized = true;
 }
 
-void Piggy::addToWorld(btDynamicsWorld * world) {
+void Piggy::addToWorld(btDiscreteDynamicsWorld *world) {
     if(initialized) {
         this->piggyRigidBody.addToWorld(world);
         this->piggyRigidBody.entityRigidBody->setUserPointer(this);

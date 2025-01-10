@@ -11,6 +11,7 @@ class UIMaster {
     public:
         UIMaster(unsigned int scrWidth, unsigned int scrHeight);
         void render(float deltaTime, float curTime);
+        void showSceneLoadProgress(float progress);
         void addElement(UIElement newElement);
         void addTextElement(UITextElement& newElement);
         void showDialog(std::string text);

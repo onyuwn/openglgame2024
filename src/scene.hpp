@@ -1,6 +1,8 @@
 #ifndef SCENE_HPP
 #define SCENE_HPP
 #define GLM_ENABLE_EXPERIMENTAL
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include "gameobject.hpp"
 #include "skybox.hpp"
 #include <glm/glm.hpp>
@@ -16,10 +18,11 @@
 #include <string>
 #include <memory>
 #include <algorithm>
+#include "camera.hpp"
 
 class Scene {
     public:
-        virtual void render(float deltaTime, float curTime) = 0;
+        virtual void render(float deltaTime, float curTime, GLFWwindow *window) = 0;
         virtual void initialize(std::function<void(float)> progressCallback) = 0;
         virtual void addGameObject(std::shared_ptr<GameObject> gameObject) = 0;
         virtual void removeGameObject() = 0; // todo: id system?

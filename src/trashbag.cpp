@@ -11,7 +11,7 @@ void TrashBag::initialize() {
     this->initialized = true;
 }
 
-void TrashBag::addToWorld(btDynamicsWorld *world) {
+void TrashBag::addToWorld(btDiscreteDynamicsWorld *world) {
     if(this->initialized) {
         this->trashBagRigidBody.addToWorld(world);
         this->trashBagRigidBody.entityRigidBody->setUserPointer(this);

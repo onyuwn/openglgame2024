@@ -16,7 +16,7 @@ class Terrain {
         Terrain(Model &terrainModel, btVector3 defaultPos = btVector3(0,0,0));
         void render(Shader &shader, glm::mat4 model = glm::mat4(1.0));
         void initTerrain();
-        void addToWorld(btDynamicsWorld * world);
+        void addToWorld(btDiscreteDynamicsWorld * world);
     private:
         Model &terrainModel;
         btVector3 position;

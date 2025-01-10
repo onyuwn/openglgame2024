@@ -12,7 +12,7 @@ class TrashBag : public GameObject {
     public:
         TrashBag(Shader &shader, Model &trashBagModel);
         void initialize() override;
-        void addToWorld(btDynamicsWorld *world);
+        void addToWorld(btDiscreteDynamicsWorld *world);
         void render(float deltaTime) override;
         GameObjectInteractionType getInteraction() override;
         std::string getDialogueLine() override;

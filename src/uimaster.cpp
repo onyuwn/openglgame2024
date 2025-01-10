@@ -16,6 +16,10 @@ void UIMaster::render(float deltaTime, float curTime) {
     }
 }
 
+void UIMaster::showSceneLoadProgress(float progress) {
+    
+}
+
 void UIMaster::addElement(UIElement newElement) {
     
 }
