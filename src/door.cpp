@@ -1,7 +1,7 @@
 #include "door.hpp"
 
-Door::Door(Shader &shader, Model &doorModel, glm::vec3 doorPos) : shader(shader),
-                             doorRigidBody(doorModel, doorPos),
+Door::Door(Shader &shader, Model &doorModel, glm::vec3 doorPos, float initialRot, glm::vec3 rotAxis) : shader(shader),
+                             doorRigidBody(doorModel, doorPos, initialRot, rotAxis),
                              initialized(false)
 {
     std::cout << "door" << std::endl;

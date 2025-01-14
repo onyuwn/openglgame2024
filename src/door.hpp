@@ -11,7 +11,7 @@
 
 class Door : public GameObject { // use hinge constraint
     public:
-        Door(Shader &shader, Model &doorModel, glm::vec3 doorPos);
+        Door(Shader &shader, Model &doorModel, glm::vec3 doorPos, float initialRot = 0.0, glm::vec3 rotAxis = glm::vec3(0, 1.0, 0));
         void render(float deltaTime) override;
         void initialize() override;
         GameObjectInteractionType getInteraction() override;

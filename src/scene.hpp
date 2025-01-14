@@ -23,7 +23,7 @@
 class Scene {
     public:
         virtual void render(float deltaTime, float curTime, GLFWwindow *window) = 0;
-        virtual void initialize(std::function<void(float)> progressCallback) = 0;
+        virtual void initialize(std::function<void(float, std::string)> progressCallback) = 0;
         virtual void addGameObject(std::shared_ptr<GameObject> gameObject) = 0;
         virtual void removeGameObject() = 0; // todo: id system?
     private:

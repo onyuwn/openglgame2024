@@ -15,7 +15,7 @@
 
 class DoorRigidBody {
     public:
-        DoorRigidBody(Model &doorModel, glm::vec3 doorPos);
+        DoorRigidBody(Model &doorModel, glm::vec3 doorPos, float initialRot = 0, glm::vec3 rotAxis = glm::vec3(0, 1.0, 0));
         ~DoorRigidBody();
         void initialize();
         void render(Shader &shader, float deltaTime);
@@ -33,6 +33,8 @@ class DoorRigidBody {
         glm::vec3 meshOrigin;
         glm::vec3 doorPos;
         glm::vec3 doorSize;
+        float initialRot;
+        glm::vec3 rotAxis;
 };
 
 #endif

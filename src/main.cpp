@@ -54,6 +54,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+//    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -87,22 +88,28 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS); 
 
     UIMaster ui(SCR_WIDTH, SCR_HEIGHT);
     UITextElement crosshair("resources/text/Angelic Peace.ttf", "X", 48);
+    UIElement statusBox(300, 40, 0, 0, SCR_WIDTH, SCR_HEIGHT);
     ui.addTextElement(crosshair);
 
     float progress = 0.0f;
     MainScene scene1("scene1", ui, camera);
     ProgressBar progressBar1;
-    crosshair.setText("Please be patient with me...");
-    scene1.initialize([&progress, &window, &progressBar1, &crosshair](float newProgress) { // i tyhinks this workds lol
+    bool closeCallback;
+    scene1.initialize([&progress, &window, &progressBar1, &crosshair, &statusBox, &closeCallback](float newProgress, std::string curProcess) { // i tyhinks this workds lol
         float curTime = static_cast<float>(glfwGetTime());
-        glClearColor(0.05f, 0.05f, 1.0f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         progress += newProgress;
         progressBar1.update(progress);
-        crosshair.render((float)SCR_WIDTH / 4, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 0.0, 0.0), curTime);
+        crosshair.setText("Please be patient with me...");
+        crosshair.render(150, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 0.0, 0.0), curTime);
+        statusBox.render(0, closeCallback);
+        crosshair.setText(curProcess);
+        crosshair.render(30, 15, .5, glm::vec3(1.0, 1.0, 1.0), curTime);
         glfwSwapBuffers(window);
         glfwPollEvents();
     });

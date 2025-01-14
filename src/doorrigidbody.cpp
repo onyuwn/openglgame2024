@@ -1,6 +1,9 @@
 #include "doorrigidbody.hpp"
 
-DoorRigidBody::DoorRigidBody(Model &doorModel, glm::vec3 doorPos) : doorModel(doorModel), initialized(false), isOpen(false), rotating(false), meshOrigin(glm::vec3(0.0, 0.0, 0.0)), doorPos(doorPos), doorSize(glm::vec3(1.0)), doorHingeConstraint(nullptr) {}
+DoorRigidBody::DoorRigidBody(Model &doorModel, glm::vec3 doorPos, float initialRot, glm::vec3 rotAxis) 
+    : doorModel(doorModel), initialized(false), isOpen(false), rotating(false),
+      meshOrigin(glm::vec3(0.0, 0.0, 0.0)), doorPos(doorPos), doorSize(glm::vec3(1.0)),
+      doorHingeConstraint(nullptr), initialRot(initialRot), rotAxis(rotAxis) {}
 
 DoorRigidBody::~DoorRigidBody() {
     if (this->doorRigidBody) {
@@ -40,8 +43,16 @@ void DoorRigidBody::initialize() {
     this->doorCollisionShape = boxShape;
 
     btTransform startTransform;
-    startTransform.setIdentity();
-    startTransform.setOrigin(btVector3(doorPos.x - (size.x/2), doorPos.y, doorPos.z));
+    btVector3 axis = btVector3(rotAxis.x, rotAxis.y, rotAxis.z);
+    btQuaternion initQuat = btQuaternion(axis, glm::radians(initialRot));
+    if(initialRot != 0) {
+        startTransform.setRotation(initQuat);
+    } else {
+        startTransform.setIdentity();
+    }
+    // build quat from 
+    startTransform.setOrigin(btVector3(doorPos.x - (size.x/2), doorPos.y, doorPos.z)); // or take door dir argument? uhgh
+    //startTransform.setOrigin(btVector3(doorPos.x - (size.x/2), doorPos.y, doorPos.z));
 
     btDefaultMotionState* motionstate = new btDefaultMotionState(startTransform);
 
@@ -106,13 +117,13 @@ void DoorRigidBody::render(Shader &shader, float deltaTime) {
             currentTransform.setOrigin(btVector3(doorPos.x - (doorSize.x/2), doorPos.y, doorPos.z));
         }
 
-        glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(doorAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(doorAngle), rotAxis);
         glm::quat rotationQuat = glm::quat_cast(rotationMatrix);
         btQuaternion btRot(rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w);
         currentTransform.setRotation(btRot);
         this->doorRigidBody->setWorldTransform(currentTransform);
     }
-    modelRotationMatrix *= glm::rotate(glm::mat4(1.0f), glm::radians(doorAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+    modelRotationMatrix *= glm::rotate(glm::mat4(1.0f), glm::radians(doorAngle), rotAxis);
     shader.setMat4("model", modelRotationMatrix);
     this->doorModel.draw(shader);
 }

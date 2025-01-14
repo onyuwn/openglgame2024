@@ -13,18 +13,24 @@ void main() {
         //color = vec4(0.0,1.0,0.0,1.0);
     vec4 diffuse = texture(uiTex, texCoords);
     vec2 st = gl_FragCoord.xy / screenSize;
+    vec4 noiseColor = vec4(vec3(rand(floor(st))), 1.0);
+    st *= 100.0 * (progress * 10);
+    noiseColor = vec4(rand(floor(st)));
     if(texCoords.y < progress) {
         color = diffuse;
     } else { // todo: noise
-        st *= 100.0;
-        vec3 noiseColor = vec3(rand(floor(st)));
-        color = vec4(noiseColor, 1.0);
+        color = diffuse + vec4(noiseColor.xyz, 1.0);
+        color -= vec4(distance(texCoords, vec2(.5)));
     }
 
     float borderThicknessX = 5.0 / screenSize.x;  
     float borderThicknessY = 5.0 / screenSize.y;  
 
     if(texCoords.x < borderThicknessX || texCoords.x > 1.0 - borderThicknessX || texCoords.y < borderThicknessY || texCoords.y > 1.0 - borderThicknessY) {
-        color = vec4(1.0, 0.0, 0.0, 1.0);
+        if(texCoords.y > progress) {
+            color = vec4(1.0, 0.0, 0.0, 1.0) + (noiseColor);
+        } else {
+            color = vec4(1.0, 0.0, 0.0, 1.0);
+        }
     }
 }

@@ -1,7 +1,7 @@
 #include "piggy.hpp"
 
 Piggy::Piggy(std::string name, Shader &shader, Model &piggyModel) : name(name), interacting(false), shader(shader),
-                                                 piggyRigidBody(piggyModel, btVector3(5, 2, 15), BOX, 10.0f) {
+                                                 piggyRigidBody(piggyModel, btVector3(0, 2, 18), BOX, 10.0f) {
     std::vector<std::string> linesTemp
     {
         "it's so\nover",
