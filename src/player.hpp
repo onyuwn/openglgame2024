@@ -23,7 +23,7 @@ class Player { // todo: inherit rigid body entity
         btRigidBody* playerRigidBody;
         glm::vec3 position;
 
-        Player(Camera &camera, btDiscreteDynamicsWorld *world, UIMaster &uiCallback); // todo: add player model
+        Player(Camera &camera, btDiscreteDynamicsWorld *world, UIMaster &uiCallback, bool &physDebugCallback); // todo: add player model
         void initialize();
         void UpdatePlayer(float deltaTime, GLFWwindow *window);
         void processInput(GLFWwindow *window, float deltaTime);
@@ -37,6 +37,7 @@ class Player { // todo: inherit rigid body entity
         btDiscreteDynamicsWorld *world;
         bool interactRequested;
         UIMaster &uiCallback;
+        bool &physDebugOn;
         bool initialized;
         GameObject* heldItem;
         bool itemInHand;

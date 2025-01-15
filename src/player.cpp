@@ -1,6 +1,6 @@
 #include "player.hpp"
 
-Player::Player(Camera &camera, btDiscreteDynamicsWorld *world, UIMaster &uiCallback) : camera(camera), uiCallback(uiCallback) {
+Player::Player(Camera &camera, btDiscreteDynamicsWorld *world, UIMaster &uiCallback, bool &physDebugOn) : camera(camera), uiCallback(uiCallback), physDebugOn(physDebugOn) {
     this->camera = camera;
     this->world = world;
         // build collision shape (box for rn)
@@ -38,12 +38,7 @@ void Player::addToWorld(btDiscreteDynamicsWorld * world) {
 }
 
 void Player::UpdatePlayer(float deltaTime, GLFWwindow *window) {
-    // take inputs
     processInput(window, deltaTime);
-    // recalculate proj / view matrix in camera
-    // rigidBody->applyForce(velocity * deltaTime * btFront, curPos);
-    // the camera isn't part of the player it just follows from some point --  you knew this
-    // update rigid body with proj / view matrix from camera
 }
 
 void Player::processInput(GLFWwindow *window, float deltaTime)
@@ -91,6 +86,11 @@ void Player::processInput(GLFWwindow *window, float deltaTime)
     }
     if(glfwGetKey(window, GLFW_KEY_E) == GLFW_RELEASE) {
         interactRequested = false;
+    }
+    if(glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+        physDebugOn = true;
+    } else {
+        physDebugOn = false;
     }
 
     // Apply force smoothly

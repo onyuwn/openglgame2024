@@ -1,9 +1,9 @@
 #include "doorrigidbody.hpp"
 
-DoorRigidBody::DoorRigidBody(Model &doorModel, glm::vec3 doorPos, float initialRot, glm::vec3 rotAxis) 
+DoorRigidBody::DoorRigidBody(Model &doorModel, glm::vec3 doorPos, float initialRot, glm::vec3 rotAxis, glm::vec3 doorForward) 
     : doorModel(doorModel), initialized(false), isOpen(false), rotating(false),
       meshOrigin(glm::vec3(0.0, 0.0, 0.0)), doorPos(doorPos), doorSize(glm::vec3(1.0)),
-      doorHingeConstraint(nullptr), initialRot(initialRot), rotAxis(rotAxis) {}
+      doorHingeConstraint(nullptr), initialRot(initialRot), rotAxis(rotAxis), doorForward(doorForward) {}
 
 DoorRigidBody::~DoorRigidBody() {
     if (this->doorRigidBody) {
@@ -34,9 +34,11 @@ void DoorRigidBody::initialize() {
 
     this->meshOrigin = (minVertex + maxVertex) * 0.5f;
     printf("meshorigin: %f, %f, %f\n", meshOrigin.x, meshOrigin.y, meshOrigin.z);
+    printf("doorforward: %f, %f, %f\n", doorForward.x, doorForward.y, doorForward.z);
     // Calculate the size (width, height, depth) of the bounding box
     glm::vec3 size = maxVertex - minVertex;
     this->doorSize = size;
+    printf("size: %f, %f, %f\n", size.x, size.y, size.z);
     // Create the btBoxShape using the half-extents
     btVector3 halfExtents(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
     btBoxShape* boxShape = new btBoxShape(halfExtents);
@@ -45,15 +47,10 @@ void DoorRigidBody::initialize() {
     btTransform startTransform;
     btVector3 axis = btVector3(rotAxis.x, rotAxis.y, rotAxis.z);
     btQuaternion initQuat = btQuaternion(axis, glm::radians(initialRot));
-    if(initialRot != 0) {
-        startTransform.setRotation(initQuat);
-    } else {
-        startTransform.setIdentity();
-    }
-    // build quat from 
-    startTransform.setOrigin(btVector3(doorPos.x - (size.x/2), doorPos.y, doorPos.z)); // or take door dir argument? uhgh
-    //startTransform.setOrigin(btVector3(doorPos.x - (size.x/2), doorPos.y, doorPos.z));
-
+    btVector3 offset = btVector3(size.x * doorForward.x * .5, size.y * doorForward.y * .5, size.z * doorForward.z * .5);
+    startTransform.setIdentity();
+    startTransform.setOrigin(btVector3(doorPos.x, doorPos.y, doorPos.z) + offset);
+    doorAngle = initialRot;
     btDefaultMotionState* motionstate = new btDefaultMotionState(startTransform);
 
     btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(
@@ -64,20 +61,6 @@ void DoorRigidBody::initialize() {
     );
     this->doorRigidBody = new btRigidBody(rigidBodyCI);
     this->doorRigidBody->activate(true);
-
-    // btTransform centerOfMassTransform;
-    // centerOfMassTransform.setIdentity();
-    // centerOfMassTransform.setOrigin(btVector3(doorPos.x, doorPos.y, doorPos.z));
-    // this->doorRigidBody->setCenterOfMassTransform(centerOfMassTransform);
-
-    // btVector3 worldPivot(doorPos.x, doorPos.y, doorPos.z);
-    // btVector3 hingeAxis(0.0f, 1.0f, 0.0f);
-
-    // btVector3 pivotBodySpace = this->doorRigidBody->getCenterOfMassTransform().inverse() * worldPivot;
-    // btVector3 axisInBodySpace = this->doorRigidBody->getCenterOfMassTransform().getBasis() * hingeAxis;
-
-    // this->doorHingeConstraint = new btHingeConstraint(*this->doorRigidBody, pivotBodySpace, axisInBodySpace);
-    // doorHingeConstraint->setLimit(0.0, 90.0f);
 
     this->initialized = true;
 }
@@ -105,16 +88,79 @@ void DoorRigidBody::render(Shader &shader, float deltaTime) {
         doorAngle += 180.0f * direction * deltaTime;
         btTransform currentTransform = this->doorRigidBody->getWorldTransform();
 
-        if (isOpen && doorAngle >= 90.0f) { // TODO: figure out how to use hinge constraint?
-            std::cout << "open" << std::endl;
-            doorAngle = 90.0f;
-            rotating = false;
-            currentTransform.setOrigin(btVector3(doorPos.x, doorPos.y, doorPos.z + (doorSize.x/2)));
-        } else if (!isOpen && doorAngle <= 0.0f) {
-            std::cout << "closed" << std::endl;
-            doorAngle = 0.0f;
-            rotating = false;
-            currentTransform.setOrigin(btVector3(doorPos.x - (doorSize.x/2), doorPos.y, doorPos.z));
+        // this is retarded but fuck it I've spent too much time here
+        if(doorForward.x != 0) {
+            if (isOpen && doorAngle >= 90.0f) { // TODO: figure out how to use hinge constraint?
+                int sign = 1;
+                if(rotAxis.x != 0) { sign = rotAxis.x; }
+                if(rotAxis.y != 0) { sign = rotAxis.y; }
+                if(rotAxis.z != 0) { sign = rotAxis.z; }
+                std::cout << "open" << std::endl;
+                doorAngle = 90.0f;
+                rotating = false;
+                btVector3 offset = btVector3(doorSize.z * doorForward.z * .5, doorSize.y * doorForward.y * .5, doorSize.x * doorForward.x * .5);
+                currentTransform.setOrigin(btVector3(doorPos.x, doorPos.y, doorPos.z) - (offset * sign));
+                //doorRigidBody->setCollisionFlags(doorRigidBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+            } else if (!isOpen && doorAngle <= 0.0f) {
+                int sign = 1;
+                if(rotAxis.x != 0) { sign = rotAxis.x; }
+                if(rotAxis.y != 0) { sign = rotAxis.y; }
+                if(rotAxis.z != 0) { sign = rotAxis.z; }
+                std::cout << "closed" << std::endl;
+                doorAngle = 0.0f;
+                rotating = false;
+                btVector3 offset = btVector3(doorSize.x * doorForward.x * .5, doorSize.y * doorForward.y * .5, doorSize.z * doorForward.z * .5);
+                currentTransform.setOrigin(btVector3(doorPos.x, doorPos.y, doorPos.z) + offset);
+                //doorRigidBody->setCollisionFlags(doorRigidBody->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
+            }
+        } else if(doorForward.z != 0) {
+            if (isOpen && doorAngle >= 90.0f) { // TODO: figure out how to use hinge constraint?
+                int sign = 1;
+                if(rotAxis.x != 0) { sign = rotAxis.x; }
+                if(rotAxis.y != 0) { sign = rotAxis.y; }
+                if(rotAxis.z != 0) { sign = rotAxis.z; }
+                std::cout << "open" << std::endl;
+                doorAngle = 90.0f;
+                rotating = false;
+                btVector3 offset = btVector3(doorSize.z * doorForward.z * .5, doorSize.y * doorForward.y * .5, doorSize.x * doorForward.x * .5);
+                currentTransform.setOrigin(btVector3(doorPos.x, doorPos.y, doorPos.z) + (offset * sign));
+                //doorRigidBody->setCollisionFlags(doorRigidBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+            } else if (!isOpen && doorAngle <= 0.0f) {
+                int sign = 1;
+                if(rotAxis.x != 0) { sign = rotAxis.x; }
+                if(rotAxis.y != 0) { sign = rotAxis.y; }
+                if(rotAxis.z != 0) { sign = rotAxis.z; }
+                std::cout << "closed" << std::endl;
+                doorAngle = 0.0f;
+                rotating = false;
+                btVector3 offset = btVector3(doorSize.x * doorForward.x * .5, doorSize.y * doorForward.y * .5, doorSize.z * doorForward.z * .5);
+                currentTransform.setOrigin(btVector3(doorPos.x, doorPos.y, doorPos.z) + offset);
+                //doorRigidBody->setCollisionFlags(doorRigidBody->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
+            }
+        } else if(doorForward.y != 0) {
+            if (isOpen && doorAngle >= 90.0f) { // TODO: figure out how to use hinge constraint?
+                int sign = 1;
+                if(rotAxis.x != 0) { sign = rotAxis.x; }
+                if(rotAxis.y != 0) { sign = rotAxis.y; }
+                if(rotAxis.z != 0) { sign = rotAxis.z; }
+                std::cout << "open" << std::endl;
+                doorAngle = 90.0f;
+                rotating = false;
+                btVector3 offset = btVector3(doorSize.x * doorForward.x * .5, doorSize.y * doorForward.y * .5, doorSize.z * doorForward.z * .5);
+                currentTransform.setOrigin(btVector3(doorPos.x, doorPos.y, doorPos.z) + (offset * sign));
+                //doorRigidBody->setCollisionFlags(doorRigidBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+            } else if (!isOpen && doorAngle <= 0.0f) {
+                int sign = 1;
+                if(rotAxis.x != 0) { sign = rotAxis.x; }
+                if(rotAxis.y != 0) { sign = rotAxis.y; }
+                if(rotAxis.z != 0) { sign = rotAxis.z; }
+                std::cout << "closed" << std::endl;
+                doorAngle = 0.0f;
+                rotating = false;
+                btVector3 offset = btVector3(doorSize.x * doorForward.x * .5, doorSize.y * doorForward.y * .5, doorSize.z * doorForward.z * .5);
+                currentTransform.setOrigin(btVector3(doorPos.x, doorPos.y, doorPos.z) + offset);
+                //doorRigidBody->setCollisionFlags(doorRigidBody->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
+            }
         }
 
         glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(doorAngle), rotAxis);

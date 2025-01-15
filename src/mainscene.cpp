@@ -1,7 +1,7 @@
 #include "mainscene.hpp"
 
 MainScene::MainScene(std::string name, UIMaster &ui, Camera &camera) : initialized(false),
-                                                                       ui(ui), camera(camera) {}
+                                                                       ui(ui), camera(camera), physDebugOn(false) {}
 
 void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
     if(this->initialized) {
@@ -28,8 +28,10 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         this->terrain->render(*this->basicShader);
         this->skybox->render(glm::mat4(glm::mat3(view)), projection);
 
-        debugDrawer->SetMatrices(view, projection);
-        world->debugDrawWorld();
+        if(this->physDebugOn) {
+            debugDrawer->SetMatrices(view, projection);
+            world->debugDrawWorld();
+        }
         this->ui.render(deltaTime, curTime);
 
         glfwSwapBuffers(window);
@@ -85,14 +87,14 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     progressCallback(.1f, "loading kitchen door...");
 
     this->kitchenDoorLModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/leftkdoor.obj");
-    std::shared_ptr<Door> kitchenDoorL = std::make_shared<Door>(*basicShader, *kitchenDoorLModel, glm::vec3(10, 1.86, -3.5), 90);
+    std::shared_ptr<Door> kitchenDoorL = std::make_shared<Door>(*basicShader, *kitchenDoorLModel, glm::vec3(10.1, 1.86, -3.5), 0,  glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)); // hinge points towards pos z
     kitchenDoorL->initialize();
     this->addGameObject(kitchenDoorL);
     kitchenDoorL->addToWorld(world);
     progressCallback(.1f, "loading kitchen door2...");
 
     this->kitchenDoorRModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/rightkdoor.obj");
-    std::shared_ptr<Door> kitchenDoorR = std::make_shared<Door>(*basicShader, *kitchenDoorRModel, glm::vec3(10, 1.86, 3.47), 90, glm::vec3(0, -1, 0));
+    std::shared_ptr<Door> kitchenDoorR = std::make_shared<Door>(*basicShader, *kitchenDoorRModel, glm::vec3(10.1, 1.86, 3.47), 0, glm::vec3(0, -1, 0), glm::vec3(0, 0, -1));
     kitchenDoorR->initialize();
     this->addGameObject(kitchenDoorR);
     kitchenDoorR->addToWorld(world);
@@ -100,7 +102,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
 
     this->dumpsterLidDoorModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/dumpsterliddoor.obj");
     //std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 4.27, 10.632), 90, glm::vec3(-1, 0, 0));
-    std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 2.27, 20.632), 90, glm::vec3(-1, 0, 0));
+    std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 2.27, 20.632), 0, glm::vec3(-1, 0, 0), glm::vec3(0,1,0));
     dumpsterLidDoor->initialize();
     this->addGameObject(dumpsterLidDoor);
     dumpsterLidDoor->addToWorld(world);
@@ -117,7 +119,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     terrain->addToWorld(world);
     progressCallback(.05f, "creating kitchen terrain...");
 
-    this->player = std::make_shared<Player>(camera, this->world, ui);
+    this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn);
     player->initialize();
     this->player->addToWorld(this->world);
     progressCallback(.1f, "initializing player...");

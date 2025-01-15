@@ -46,6 +46,7 @@ class MainScene : public Scene {
         UIMaster &ui;
 
         bool initialized;
+        bool physDebugOn;
 };
 
 #endif
