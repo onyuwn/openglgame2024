@@ -20,6 +20,7 @@ class MainScene : public Scene {
         void removeGameObject(); // todo: id system?
     private:
         std::vector<std::shared_ptr<GameObject>> gameObjects;
+        std::vector<std::shared_ptr<Model>> models;
         std::string name;
         std::shared_ptr<Skybox> skybox;
         //std::unique_ptr<btDiscreteDynamicsWorld> world;
@@ -37,6 +38,7 @@ class MainScene : public Scene {
         std::shared_ptr<Model> trashModel;
         std::shared_ptr<Model> arrowsModel;
         std::shared_ptr<Model> gModel;
+        std::shared_ptr<Model> goodcentsModel;
 
         std::shared_ptr<Player> player;
         std::shared_ptr<DebugDrawer> debugDrawer;
