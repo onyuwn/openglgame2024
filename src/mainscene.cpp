@@ -30,7 +30,7 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
             model = glm::translate(model, glm::vec3(1.0, 2.0, 1.0));
             model = glm::scale(model, glm::vec3(.25, .25, .25));
             basicShader->setMat4("model", model);
-            this->models[i]->draw(*this->basicShader);
+            this->models[i]->draw(*this->basicShader, curTime);
         }
 
         this->terrain->render(*this->basicShader);
@@ -127,7 +127,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     terrain->addToWorld(world);
     progressCallback(.05f, "creating kitchen terrain...");
 
-    this->goodcentsModel = std::make_shared<Model>((char*)"resources/characters/goodcents.obj");
+    this->goodcentsModel = std::make_shared<Model>((char*)"resources/characters/siplearm1.fbx");
     this->models.push_back(goodcentsModel);
     this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn);
     player->initialize();
