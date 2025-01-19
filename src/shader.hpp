@@ -19,7 +19,7 @@ class Shader {
         void setFloat(const std::string &name, float value) const;
         void setMat4(const std::string &name, const glm::mat4 &value) const;
         void setVec2(const std::string &name, const glm::vec2 &value) const;
-        void setMat4Array(const std::string &name, const std::vector<glm::mat4> &value) const;
+        void setMat4Array(const std::string &name, const glm::mat4 &value, int size) const;
 };
 
 

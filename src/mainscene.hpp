@@ -10,6 +10,9 @@
 #include "player.hpp"
 #include "uimaster.hpp"
 #include "debugdrawer.hpp"
+#include "animation.hpp"
+#include "animator.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 class MainScene : public Scene {
     public:
@@ -27,6 +30,7 @@ class MainScene : public Scene {
         btDiscreteDynamicsWorld * world;
         std::shared_ptr<Terrain> terrain;
         std::shared_ptr<Shader> basicShader;
+        std::shared_ptr<Shader> bonesShader;
         std::shared_ptr<Model> piggyModel;
         std::shared_ptr<Model> kitchenModel;
         std::shared_ptr<Model> kitchenItemsModel;
@@ -38,6 +42,9 @@ class MainScene : public Scene {
         std::shared_ptr<Model> trashModel;
         std::shared_ptr<Model> arrowsModel;
         std::shared_ptr<Model> gModel;
+
+        std::shared_ptr<Animation> testAnim;
+        std::shared_ptr<Animator> animator;
         std::shared_ptr<Model> goodcentsModel;
 
         std::shared_ptr<Player> player;

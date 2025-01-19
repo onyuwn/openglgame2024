@@ -103,6 +103,6 @@ void Shader::setMat4(const std::string &name, const glm::mat4 &value) const {
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, name.c_str()), 1, GL_FALSE, &value[0][0]);
 }
 
-void Shader::setMat4Array(const std::string &name, const std::vector<glm::mat4> &value) const {
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, name.c_str()), value.size(), GL_FALSE, glm::value_ptr(value[0]));
+void Shader::setMat4Array(const std::string &name, const glm::mat4 &value, int size) const {
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, name.c_str()), size, GL_FALSE, glm::value_ptr(value[0]));
 }

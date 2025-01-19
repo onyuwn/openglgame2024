@@ -15,10 +15,10 @@
 #include <assimp/postprocess.h>
 #include "stb_image.h"
 #include <string>
+#include <map>
 
-struct Bone {
-    std::string name;
-    int parentId;
+struct BoneInfo {
+    int id;
     glm::mat4 offset;
 };
 
@@ -32,38 +32,31 @@ class Model
         Mesh getMesh();
         std::vector<Mesh> getMeshes();
         bool isLoaded();
+        inline auto& getBoneInfoMap() { return m_BoneInfoMap; }
+        inline int& getBoneCount() { return m_BoneCounter; }
     private:
         std::vector<Mesh> meshes;
-        aiAnimation* animation;
-        std::vector<Bone> bones;
-
-        std::vector<glm::mat4> localBoneTransformMatrices;
-        std::vector<glm::mat4> finalBoneTransformMatrices;
-
         std::string directory;
-        int numBones;
-
         void loadModel(std::string path);
         void processNode(aiNode *node, const aiScene *scene);
-        aiNode* findRootBone(const aiScene *scene);
-        bool isBoneOnlyNode(aiNode *node);
         Mesh processMesh(aiMesh *mesh, const aiScene *scene);
-        void processBoneTree(aiNode *node, int parentIdx);
-        void loadBones(const aiScene *scene);
-        void loadAnimations(float curTime);
-        int getChannelPositionIndex(aiNodeAnim *channel, float timePoint);
         std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName);
 
-        inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4 from)
+        std::map<std::string, BoneInfo> m_BoneInfoMap;
+        int m_BoneCounter = 0;
+
+        void setVertexBoneDataToDefault(Vertex &vertex);
+        void setVertexBoneData(Vertex& vertex, int boneId, float weight);
+        void extractBoneWeightForVertices(std::vector<Vertex> &vertices, aiMesh* mesh, const aiScene* scene);
+
+        inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4& from)
         {
             glm::mat4 to;
-
-
-            to[0][0] = (GLfloat)from.a1; to[0][1] = (GLfloat)from.b1;  to[0][2] = (GLfloat)from.c1; to[0][3] = (GLfloat)from.d1;
-            to[1][0] = (GLfloat)from.a2; to[1][1] = (GLfloat)from.b2;  to[1][2] = (GLfloat)from.c2; to[1][3] = (GLfloat)from.d2;
-            to[2][0] = (GLfloat)from.a3; to[2][1] = (GLfloat)from.b3;  to[2][2] = (GLfloat)from.c3; to[2][3] = (GLfloat)from.d3;
-            to[3][0] = (GLfloat)from.a4; to[3][1] = (GLfloat)from.b4;  to[3][2] = (GLfloat)from.c4; to[3][3] = (GLfloat)from.d4;
-
+            //the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
+            to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
+            to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
+            to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
+            to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
             return to;
         }
 };

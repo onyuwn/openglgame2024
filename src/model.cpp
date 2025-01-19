@@ -2,28 +2,25 @@
 
 unsigned int TextureFromFile(const char *path, const std::string &directory, bool gamma = false);
 
-Model::Model(char *path) : numBones(0) {
+Model::Model(char *path) {
     std::cout << "loading..." << path << std::endl;
     loadModel(path);
-    std::cout << "BONES CT: " << numBones << std::endl;
-    for(int i = 0; i < this->bones.size(); i++) {
-        std::cout << "BONE: " << i << " " << bones[i].name << " " << bones[i].parentId << std::endl;
-    }
 }
 
 Model::Model(const Model& x) : meshes(x.meshes) {
     std::cout << "copy" << x.meshes.size() << std::endl;
 }
 
-void Model::draw(Shader &shader, float curTime) {
-    if(numBones > 0) {
-        loadAnimations(curTime);
+void Model::setVertexBoneDataToDefault(Vertex& vertex) {
+    for(int i = 0; i < 4; i++) {
+        vertex.boneIdxs[i] = -1;
+        vertex.boneWeights[i] = 0.0f;
     }
+}
+
+void Model::draw(Shader &shader, float curTime) {
 
     for(unsigned int i = 0; i < meshes.size(); i++) {
-        // if(numBones > 0) {
-        //     shader.setMat4Array("bone_matrices", finalBoneTransformMatrices);
-        // }
         meshes[i].draw(shader);
     }
 }
@@ -42,102 +39,7 @@ void Model::loadModel(std::string path) {
     }
 
     directory = path.substr(0, path.find_last_of('/'));
-    std::cout << "LOADING BONES" << std::endl;
-    loadBones(scene);
     processNode(scene->mRootNode, scene);
-
-    if(scene->mNumAnimations > 1) {
-        std::cout << "LOADING ANIMATION" << std::endl;
-        aiAnimation *animation = scene->mAnimations[1];
-        std::cout << animation->mName.C_Str() << std::endl;
-        std::cout << animation->mDuration << std::endl;
-        this->animation = scene->mAnimations[1];
-    }
-}
-
-void Model::loadAnimations(float curTime) { // i thinks we call this each frame? or load once, pass matrices to vert shader, iterated there? idk what to do about curTime lol
-    aiAnimation *animation = this->animation; // okay so exporting from blender -- don't check NLA strips but all actions. bake animations from pose mode
-    
-    if(!animation) {
-        std::cout << "failed to load animation " << std::endl;
-        return; 
-    }
-
-    std::cout << "ANIM " << animation->mName.C_Str() << std::endl;
-    float durationInSec = animation->mTicksPerSecond * animation->mDuration;
-    float animationTimePoint = std::fmod(curTime, durationInSec);
-
-    for(int i = 0; i < numBones; i++) {
-        std::cout << "PROCESSING BONE " << i << std::endl;
-        Bone bone = bones[i];
-        std::cout << "BONE PARENT: " << bone.parentId << std::endl;
-        glm::mat4 parent_transform = glm::mat4(1.0);
-
-        if(i > 0 && localBoneTransformMatrices.size() > 0) {
-            parent_transform = localBoneTransformMatrices[bone.parentId];
-        } else {
-            std::cout << "no parent or no bone transformation matrices..." << std::endl;
-        }
-
-        if(i < animation->mNumChannels - 1) {
-            std::cout << "CHANNELS" << animation->mNumChannels << " " << animationTimePoint << std::endl;
-            aiNodeAnim *channel = animation->mChannels[i];
-            if(!channel || channel == nullptr) {
-                std::cout << "invalid channel..." << std::endl;
-                return;
-            }
-            int idxPosition = getChannelPositionIndex(channel, animationTimePoint);
-            std::cout << "FOUND CHANNEL POSSITION INDEX " << idxPosition << std::endl;
-            std::cout << "position keys: " << channel->mNumPositionKeys << std::endl;
-            std::cout << "rotation keys: " << channel->mNumRotationKeys << std::endl;
-            std::cout << "scale keys: " << channel->mNumScalingKeys << std::endl;
-            if(channel->mNumPositionKeys > 0) {
-                glm::mat4 translation = glm::translate(
-                glm::mat4(1.0),
-                glm::vec3(channel->mPositionKeys[idxPosition].mValue.x,
-                        channel->mPositionKeys[idxPosition].mValue.y,
-                        channel->mPositionKeys[idxPosition].mValue.z)
-                );
-
-                glm::mat4 rotation = glm::toMat4(
-                    glm::normalize(
-                        glm::quat(channel->mRotationKeys[idxPosition].mValue.x,
-                                channel->mRotationKeys[idxPosition].mValue.y,
-                                channel->mRotationKeys[idxPosition].mValue.z,
-                                channel->mRotationKeys[idxPosition].mValue.w)
-                    )
-                );
-
-                glm::mat4 scale = glm::scale(
-                    glm::mat4(1.0),
-                    glm::vec3(channel->mScalingKeys[idxPosition].mValue.x,
-                            channel->mScalingKeys[idxPosition].mValue.y,
-                            channel->mScalingKeys[idxPosition].mValue.z)
-                );
-
-
-                glm::mat4 animTransform = translation * rotation * scale;
-                //glm::mat4 animTransform = glm::mat4(1.0);
-                glm::mat4 localTransform = parent_transform * animTransform;
-                localBoneTransformMatrices.push_back(localTransform);
-                glm::mat4 finalTransform = localTransform * bone.offset;
-                finalBoneTransformMatrices.push_back(finalTransform);
-            } else {
-                std::cout << "NO POSITION KEYS DAFUQ" << std::endl;
-            }
-        }
-    }
-}
-
-int Model::getChannelPositionIndex(aiNodeAnim *channel, float timePoint) { // todo: use more optimal method idk
-    std::cout << "AHHHHHHHH " <<std::endl;
-    for(int i = 0; i < channel->mNumPositionKeys; i++) {
-        std::cout << "CHANNEL POSITION KEY " << i <<std::endl;
-        if (timePoint < channel->mPositionKeys[i].mTime) {
-            return i;
-        }
-    }
-    return 0;
 }
 
 Mesh Model::getMesh() {
@@ -169,6 +71,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
 
     for(unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
+        setVertexBoneDataToDefault(vertex);
         vertex.Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
         
@@ -197,33 +100,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     } 
 
-    //bones -- finally calc weights, buffer that ish
-    for(int i = 0; i < mesh->mNumBones; i++) {
-        aiBone *bone = mesh->mBones[i];
-        int foundBoneIdx = 0; // match bone back to array of bone nodes we made earlier
-        bool boneFound = false;
-
-        for(int j = 0; j < this->bones.size(); j++) { // shitty but idgaf
-            if(strcmp(this->bones[j].name.c_str(), bone->mName.C_Str())) {
-                boneFound = true;
-                foundBoneIdx = j;
-                break;
-            }
-        }
-
-        this->bones[i].offset = aiMatrix4x4ToGlm(bone->mOffsetMatrix);
-
-        for(int j = 0; j < bone->mNumWeights; j++) {
-            int vertId = bone->mWeights[j].mVertexId;
-            float weight = bone->mWeights[j].mWeight;
-            for(int k = 0; k < 4; k++) { // max bones per vert -- 4 rn -- idk why there wold be more than 1. probklem for later
-                if(vertices[vertId].boneWeights[k] == 0) {
-                    vertices[vertId].boneIdxs[k] = foundBoneIdx;
-                    vertices[vertId].boneWeights[k] = weight;
-                }
-            }
-        }
-    }
+    extractBoneWeightForVertices(vertices, mesh, scene);
 
     return Mesh(vertices, indices, textures);
 }
@@ -283,49 +160,41 @@ unsigned int TextureFromFile(const char *path, const std::string &directory, boo
     return textureID;
 }
 
-void Model::loadBones(const aiScene *scene) {
-    aiNode *rootBone = findRootBone(scene);
-    if(!rootBone) {
-        return; // no bones
-    }
-    processBoneTree(rootBone, 0);
-}
-
-aiNode* Model::findRootBone(const aiScene *scene) {
-    aiNode *rootNode = scene->mRootNode;
-
-    for(int i = 0; i < rootNode->mNumChildren; i++) {
-        aiNode *node = rootNode->mChildren[i];
-        if(isBoneOnlyNode(node)) {
-            return node;
+void Model::setVertexBoneData(Vertex& vertex, int boneId, float weight) {
+    for(int i = 0; i < 4; ++i) {
+        if(vertex.boneIdxs[i] < 0) {
+            vertex.boneWeights[i] = weight;
+            vertex.boneIdxs[i] = boneId;
         }
     }
-    return nullptr;
 }
 
-bool Model::isBoneOnlyNode(aiNode *node) {
-    if(node->mNumMeshes > 0) {
-        return false;
-    } // ah yes, this is a bone
-    bool found = true;
-    for(int i = 0; i < node->mNumChildren; i++) {
-        if(!isBoneOnlyNode(node->mChildren[i])) {
-            found = false;
+void Model::extractBoneWeightForVertices(std::vector<Vertex> &vertices, aiMesh* mesh, const aiScene* scene) {
+    for(int boneIdx = 0; boneIdx < mesh->mNumBones; ++boneIdx) {
+        int boneId = -1;
+        std::string boneName = mesh->mBones[boneIdx]->mName.C_Str();
+        if(m_BoneInfoMap.find(boneName) == m_BoneInfoMap.end()) {
+            BoneInfo newBone;
+            newBone.id = m_BoneCounter;
+            newBone.offset = aiMatrix4x4ToGlm(mesh->mBones[boneIdx]->mOffsetMatrix);
+            m_BoneInfoMap[boneName] = newBone;
+            boneId = m_BoneCounter;
+            m_BoneCounter++;
         }
-    }
-    return found;
-}
+        else
+        {
+            boneId = m_BoneInfoMap[boneName].id;
+        }
 
-void Model::processBoneTree(aiNode *node, int parentIdx) {
-    Bone bone;
-    int newBoneIdx = numBones;
-    // bone.id = 0; not needed -- idx is the id lol
-    bone.name = node->mName.C_Str();
-    bone.parentId = parentIdx;
-    numBones++;
-    bones.push_back(bone);
-    for(int i = 0; i < node->mNumChildren; i++) {
-        processBoneTree(node->mChildren[i], newBoneIdx);
+        auto weights = mesh->mBones[boneIdx]->mWeights;
+        int numWeights = mesh->mBones[boneIdx]->mNumWeights;
+
+        for(int weightIdx = 0; weightIdx < numWeights; ++weightIdx) {
+            int vertexId = weights[weightIdx].mVertexId;
+            float weight = weights[weightIdx].mWeight;
+            assert(vertexId <= vertices.size());
+            setVertexBoneData(vertices[vertexId], boneId, weight);
+        }
     }
 }
 
