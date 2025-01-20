@@ -11,9 +11,18 @@ Model::Model(const Model& x) : meshes(x.meshes) {
     std::cout << "copy" << x.meshes.size() << std::endl;
 }
 
-void Model::draw(Shader &shader) {
-    for(unsigned int i = 0; i < meshes.size(); i++)
+void Model::setVertexBoneDataToDefault(Vertex& vertex) {
+    for(int i = 0; i < 4; i++) {
+        vertex.boneIdxs[i] = -1;
+        vertex.boneWeights[i] = 0.0f;
+    }
+}
+
+void Model::draw(Shader &shader, float curTime) {
+
+    for(unsigned int i = 0; i < meshes.size(); i++) {
         meshes[i].draw(shader);
+    }
 }
 
 std::vector<Mesh> meshes;
@@ -62,6 +71,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
 
     for(unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
+        setVertexBoneDataToDefault(vertex);
         vertex.Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
         
@@ -89,6 +99,8 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
                                             aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     } 
+
+    extractBoneWeightForVertices(vertices, mesh, scene);
 
     return Mesh(vertices, indices, textures);
 }
@@ -146,6 +158,44 @@ unsigned int TextureFromFile(const char *path, const std::string &directory, boo
     }
 
     return textureID;
+}
+
+void Model::setVertexBoneData(Vertex& vertex, int boneId, float weight) {
+    for(int i = 0; i < 4; ++i) {
+        if(vertex.boneIdxs[i] < 0) {
+            vertex.boneWeights[i] = weight;
+            vertex.boneIdxs[i] = boneId;
+        }
+    }
+}
+
+void Model::extractBoneWeightForVertices(std::vector<Vertex> &vertices, aiMesh* mesh, const aiScene* scene) {
+    for(int boneIdx = 0; boneIdx < mesh->mNumBones; ++boneIdx) {
+        int boneId = -1;
+        std::string boneName = mesh->mBones[boneIdx]->mName.C_Str();
+        if(m_BoneInfoMap.find(boneName) == m_BoneInfoMap.end()) {
+            BoneInfo newBone;
+            newBone.id = m_BoneCounter;
+            newBone.offset = aiMatrix4x4ToGlm(mesh->mBones[boneIdx]->mOffsetMatrix);
+            m_BoneInfoMap[boneName] = newBone;
+            boneId = m_BoneCounter;
+            m_BoneCounter++;
+        }
+        else
+        {
+            boneId = m_BoneInfoMap[boneName].id;
+        }
+
+        auto weights = mesh->mBones[boneIdx]->mWeights;
+        int numWeights = mesh->mBones[boneIdx]->mNumWeights;
+
+        for(int weightIdx = 0; weightIdx < numWeights; ++weightIdx) {
+            int vertexId = weights[weightIdx].mVertexId;
+            float weight = weights[weightIdx].mWeight;
+            assert(vertexId <= vertices.size());
+            setVertexBoneData(vertices[vertexId], boneId, weight);
+        }
+    }
 }
 
 bool Model::isLoaded() {

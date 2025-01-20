@@ -9,6 +9,8 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+vec3 outPos;
+
 void main()
 {
     TexCoords = aTexCoords;    

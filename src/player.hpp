@@ -32,6 +32,7 @@ class Player { // todo: inherit rigid body entity
         bool checkGrounded();
         glm::vec3 getPlayerPos();
         glm::vec3 getPlayerHandPos();
+        glm::mat3 getPlayerRotationMatrix();
     private:
         Camera &camera;
         btDiscreteDynamicsWorld *world;
