@@ -12,8 +12,8 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)800 / (float)600, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos());
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos() + glm::vec3(0,1,0));
         //glm::mat4 view = camera.GetViewMatrix(glm::vec3(0,0,0));
 
         this->basicShader->use();
@@ -28,8 +28,9 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         this->kitchenItemsModel->draw(*this->basicShader);
 
         for(int i = 0; i < this->models.size(); i++) {
-            model = glm::translate(model, glm::vec3(1.0, 0.0, 1.0));
-            model = glm::scale(model, glm::vec3(.5, .5, .5));
+            model = glm::translate(model, player->getPlayerPos() + glm::vec3(0,.6,0));
+            model = glm::scale(model, glm::vec3(.25, .5, .25));
+            model *= glm::mat4(this->player->getPlayerRotationMatrix());
             basicShader->setMat4("model", model);
 
             auto transforms = this->animator->getFinalBoneMatrices();
@@ -142,8 +143,8 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     terrain->addToWorld(world);
     progressCallback(.05f, "creating kitchen terrain...");
 
-    this->goodcentsModel = std::make_shared<Model>((char*)"resources/characters/dancing_vampire.dae");
-    this->testAnim = std::make_shared<Animation>("resources/characters/dancing_vampire.dae", this->goodcentsModel.get());
+    this->goodcentsModel = std::make_shared<Model>((char*)"resources/characters/arms.dae");
+    this->testAnim = std::make_shared<Animation>("resources/characters/arms.dae", this->goodcentsModel.get());
     this->animator = std::make_shared<Animator>(this->testAnim.get());
     this->models.push_back(goodcentsModel);
     this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn);

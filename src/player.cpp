@@ -186,3 +186,7 @@ glm::vec3 Player::getPlayerPos() {
 glm::vec3 Player::getPlayerHandPos() {
     return getPlayerPos() + this->camera.Front * 2.0f;
 }
+
+glm::mat3 Player::getPlayerRotationMatrix() {
+    return glm::mat3(this->camera.Right, this->camera.Up, this->camera.Front);
+}
