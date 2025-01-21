@@ -30,7 +30,6 @@ class MainScene : public Scene {
         btDiscreteDynamicsWorld * world;
         std::shared_ptr<Terrain> terrain;
         std::shared_ptr<Shader> basicShader;
-        std::shared_ptr<Shader> bonesShader;
         std::shared_ptr<Model> piggyModel;
         std::shared_ptr<Model> kitchenModel;
         std::shared_ptr<Model> kitchenItemsModel;

@@ -6,8 +6,7 @@ MainScene::MainScene(std::string name, UIMaster &ui, Camera &camera) : initializ
 void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
     if(this->initialized) {
         this->world->stepSimulation(deltaTime, 7);
-        this->player->UpdatePlayer(deltaTime, window);
-        this->animator->updateAnimation(deltaTime);
+        this->player->UpdatePlayer(curTime, deltaTime, window);
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -27,26 +26,8 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         basicShader->setMat4("model", model);
         this->kitchenItemsModel->draw(*this->basicShader);
 
-        for(int i = 0; i < this->models.size(); i++) {
-            model = glm::translate(model, player->getPlayerPos() + glm::vec3(0,.6,0));
-            model = glm::scale(model, glm::vec3(.25, .5, .25));
-            model *= glm::mat4(this->player->getPlayerRotationMatrix());
-            basicShader->setMat4("model", model);
-
-            auto transforms = this->animator->getFinalBoneMatrices();
-            this->bonesShader->use();
-            bonesShader->setMat4("projection", projection);
-            bonesShader->setMat4("view", view);
-            bonesShader->setMat4("model", model);
-            //int boneMatLoc = glGetUniformLocation(this->bonesShader->shaderProgram, "finalBonesMatrices");
-            //glUniformMatrix4fv(boneMatLoc, transforms.size(), GL_FALSE, glm::value_ptr(transforms[0]));
-            //this->bonesShader->setMat4Array("finalBonesMatrices", transforms[0], transforms.size());
-            for (int j = 0; j < transforms.size(); ++j) {
-                this->bonesShader->setMat4("finalBonesMatrices[" + std::to_string(j) + "]", transforms[j]);
-            }
-            this->models[i]->draw(*this->bonesShader, curTime);
-        }
-
+        for(int i = 0; i < this->models.size(); i++) {}
+        this->player->render(curTime, deltaTime);
         this->basicShader->use();
         this->terrain->render(*this->basicShader);
         this->skybox->render(glm::mat4(glm::mat3(view)), projection);
@@ -64,7 +45,6 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 
 void MainScene::initialize(std::function<void(float, std::string)> progressCallback) {
     this->basicShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
-    this->bonesShader = std::make_shared<Shader>("src/shaders/bones.vs", "src/shaders/basic.fs");
     std::vector<std::string> skyboxFaces = { // rgba
         "resources/mainskybox/gradiesn.png",
         "resources/mainskybox/gradiesn.png",
@@ -143,11 +123,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     terrain->addToWorld(world);
     progressCallback(.05f, "creating kitchen terrain...");
 
-    this->goodcentsModel = std::make_shared<Model>((char*)"resources/characters/arms.dae");
-    this->testAnim = std::make_shared<Animation>("resources/characters/arms.dae", this->goodcentsModel.get());
-    this->animator = std::make_shared<Animator>(this->testAnim.get());
-    this->models.push_back(goodcentsModel);
-    this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn);
+    this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn, "resources/characters/arms2.gltf");
     player->initialize();
     this->player->addToWorld(this->world);
     progressCallback(.1f, "initializing player...");

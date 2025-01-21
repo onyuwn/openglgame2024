@@ -3,7 +3,6 @@
 Bone::Bone(const std::string& name, int id, const aiNodeAnim* channel)
     : mName(name), mId(id), mLocalTransform(1.0f) {
         mNumPositions = channel->mNumPositionKeys;
-        std::cout << "POS KEYS: " << mNumPositions << std::endl;
         for(int posIdx = 0; posIdx < mNumPositions; ++posIdx) {
             aiVector3D aiPosition = channel->mPositionKeys[posIdx].mValue;
             float timeStamp = channel->mPositionKeys[posIdx].mTime;
@@ -14,7 +13,6 @@ Bone::Bone(const std::string& name, int id, const aiNodeAnim* channel)
         }
 
         mNumRotations = channel->mNumRotationKeys;
-        std::cout << "ROT KEYS: " << mNumRotations << std::endl;
         for(int rotIdx = 0; rotIdx < mNumRotations; ++rotIdx) {
             aiQuaternion aiRotation = channel->mRotationKeys[rotIdx].mValue;
             float timeStamp = channel->mRotationKeys[rotIdx].mTime;
@@ -25,7 +23,6 @@ Bone::Bone(const std::string& name, int id, const aiNodeAnim* channel)
         }
 
         mNumScalings = channel->mNumScalingKeys;
-        std::cout << "SCALE KEYS: " << mNumScalings << std::endl;
         for(int scaleIdx = 0; scaleIdx < mNumScalings; ++scaleIdx) {
             aiVector3D aiScale = channel->mScalingKeys[scaleIdx].mValue;
             float timeStamp = channel->mScalingKeys[scaleIdx].mTime;

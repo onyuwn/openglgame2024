@@ -1,6 +1,9 @@
 #include "player.hpp"
 
-Player::Player(Camera &camera, btDiscreteDynamicsWorld *world, UIMaster &uiCallback, bool &physDebugOn) : camera(camera), uiCallback(uiCallback), physDebugOn(physDebugOn) {
+Player::Player(Camera &camera, btDiscreteDynamicsWorld *world,
+               UIMaster &uiCallback, bool &physDebugOn, std::string playerModelPath)
+                : camera(camera), uiCallback(uiCallback), physDebugOn(physDebugOn),
+                  playerModelPath(playerModelPath), animStart(0.0), curAnim(nullptr) {
     this->camera = camera;
     this->world = world;
         // build collision shape (box for rn)
@@ -31,17 +34,48 @@ void Player::initialize() {
     this->playerRigidBody->setFriction(.5);
     this->playerRigidBody->setDamping(0.6f, 0.9f);
     this->initialized=true;
+
+    this->bonesShader = std::make_shared<Shader>("src/shaders/bones.vs", "src/shaders/basic.fs");
+    this->playerModel = std::make_shared<Model>((char*)playerModelPath.data());
+    Animation* grabAnim = new Animation(playerModelPath, this->playerModel.get());
+    this->animator = std::make_shared<Animator>(grabAnim);
+    animations.insert({"grab", grabAnim});
+}
+
+void Player::render(float curTime, float deltaTime) {
+    if(curAnim && playingAnim && curTime - animStart < (curAnim->getDuration() / curAnim->getTicksPerSecond())) {
+        this->animator->updateAnimation(deltaTime);
+    } else {
+        playingAnim = false;
+        curAnim = nullptr;
+    }
+    glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos() + glm::vec3(0,.75,-.1));
+    model = glm::scale(model, glm::vec3(.25, .25, .25));
+    model *= glm::mat4(getPlayerRotationMatrix());
+
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
+    glm::mat4 view = camera.GetViewMatrix(getPlayerPos() + glm::vec3(0,1,0));
+
+    auto transforms = this->animator->getFinalBoneMatrices();
+    this->bonesShader->use();
+    bonesShader->setMat4("projection", projection);
+    bonesShader->setMat4("view", view);
+    bonesShader->setMat4("model", model);
+    for (int i = 0; i < transforms.size(); ++i) {
+        this->bonesShader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+    }
+    this->playerModel->draw(*this->bonesShader, curTime);
 }
 
 void Player::addToWorld(btDiscreteDynamicsWorld * world) {
     world->addRigidBody(this->playerRigidBody);
 }
 
-void Player::UpdatePlayer(float deltaTime, GLFWwindow *window) {
-    processInput(window, deltaTime);
+void Player::UpdatePlayer(float curTime, float deltaTime, GLFWwindow *window) {
+    processInput(window, curTime, deltaTime);
 }
 
-void Player::processInput(GLFWwindow *window, float deltaTime)
+void Player::processInput(GLFWwindow *window, float curTime, float deltaTime)
 { // this should just apply force to the rigid body, translate view matrix with rigid body pos through getter method in the main loop
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -50,8 +84,10 @@ void Player::processInput(GLFWwindow *window, float deltaTime)
     float velocity = (this->camera.MovementSpeed * deltaTime);
     btTransform curTransform = this->playerRigidBody->getWorldTransform();
     btVector3 curPos = curTransform.getOrigin();
-    btVector3 btFront = btVector3(this->camera.Front.x, this->camera.Front.y, this->camera.Front.z);
-    btVector3 btRight = btVector3(this->camera.Right.x, this->camera.Right.y, this->camera.Right.z);
+    glm::vec3 cameraFrontNormal = glm::normalize(glm::vec3(this->camera.Front.x, 0, this->camera.Front.z));
+    glm::vec3 cameraRightNormal = glm::normalize(glm::vec3(this->camera.Right.x, 0, this->camera.Right.z));
+    btVector3 btFront = btVector3(cameraFrontNormal.x, 0, cameraFrontNormal.z);
+    btVector3 btRight = btVector3(cameraRightNormal.x, 0, cameraRightNormal.z);
 
     btVector3 force(0, 0, 0);  // Reset force each frame
 
@@ -75,13 +111,14 @@ void Player::processInput(GLFWwindow *window, float deltaTime)
         this->playerRigidBody->activate(true);
         force += btRight * velocity * 10000;
     }
+
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && checkGrounded()) {
         this->playerRigidBody->setActivationState(1);
         this->playerRigidBody->activate(true);
         force += btVector3(0, 1, 0) * velocity * 50000;
     }
     if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && !interactRequested) {
-        this->interact();
+        this->interact(curTime);
         interactRequested = true;
     }
     if(glfwGetKey(window, GLFW_KEY_E) == GLFW_RELEASE) {
@@ -121,18 +158,42 @@ void Player::processInput(GLFWwindow *window, float deltaTime)
         btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
         btScalar dampingFactor = 0.98f;  // Damping factor for smooth deceleration
         playerRigidBody->setLinearVelocity(currentVelocity * dampingFactor);
+    } else { // in the air
+        printf("AIR\n");
+        btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
+        btVector3 clampedVelocity = currentVelocity;
+        float maxSpeed = 3.0f;  // Set the max horizontal speed
+        if (clampedVelocity.x() > maxSpeed) {
+            clampedVelocity.setX(maxSpeed);
+        }
+        if (clampedVelocity.x() < -maxSpeed) {
+            clampedVelocity.setX(-maxSpeed);
+        }
+        if (clampedVelocity.z() > maxSpeed) {
+            clampedVelocity.setZ(maxSpeed);
+        }
+        if (clampedVelocity.z() < -maxSpeed) {
+            clampedVelocity.setZ(-maxSpeed);
+        }
+
+        // Set the vertical velocity (y) without clamping it
+        clampedVelocity.setY(currentVelocity.y());
+
+        // Apply the clamped velocity back to the rigid body (only affects horizontal speed)
+        playerRigidBody->setLinearVelocity(clampedVelocity);
+        this->playerRigidBody->applyCentralForce(force);
     }
 }
 
 bool Player::checkGrounded() {
     glm::vec3 outOrigin = getPlayerPos();
-    glm::vec3 outEnd = outOrigin + this->camera.Up * -3.0f;
+    glm::vec3 outEnd = outOrigin + this->camera.WorldUp * -3.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
     world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
     return RayCallback.hasHit();
 }
 
-void Player::interact() {
+void Player::interact(float curTime) {
     // cast ray, check if entity has interactable content
     glm::vec3 outOrigin = getPlayerPos();
     glm::vec3 outEnd = outOrigin + this->camera.Front * 100.0f;
@@ -142,7 +203,11 @@ void Player::interact() {
         GameObject* hitObject = (GameObject*)RayCallback.m_collisionObject->getUserPointer(); // todo cast to generic gameobject
         if(hitObject != nullptr) {
             GameObjectInteractionType interactionType = hitObject->getInteraction();
-
+            // play grab anim once
+            curAnim = this->animations["grab"];
+            playingAnim = true;
+            animStart = curTime;
+            printf("animstart: %f", curTime);
             if(interactionType == DIALOGUE) {
                 // if interaction returns something....
                 std::string dialogLine = hitObject->getDialogueLine();
@@ -188,5 +253,5 @@ glm::vec3 Player::getPlayerHandPos() {
 }
 
 glm::mat3 Player::getPlayerRotationMatrix() {
-    return glm::mat3(this->camera.Right, this->camera.Up, this->camera.Front);
+    return glm::mat3(this->camera.Right, this->camera.Up, -this->camera.Front);
 }

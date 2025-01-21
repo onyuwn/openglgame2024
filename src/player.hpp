@@ -16,6 +16,8 @@
 #include "uimaster.hpp"
 #include "gameobject.hpp"
 #include "gameobjectinteractiontype.hpp"
+#include "animation.hpp"
+#include "animator.hpp"
 
 class Player { // todo: inherit rigid body entity
     public:
@@ -23,16 +25,17 @@ class Player { // todo: inherit rigid body entity
         btRigidBody* playerRigidBody;
         glm::vec3 position;
 
-        Player(Camera &camera, btDiscreteDynamicsWorld *world, UIMaster &uiCallback, bool &physDebugCallback); // todo: add player model
+        Player(Camera &camera, btDiscreteDynamicsWorld *world, UIMaster &uiCallback, bool &physDebugCallback, std::string playerModelPath); // todo: add player model
         void initialize();
-        void UpdatePlayer(float deltaTime, GLFWwindow *window);
-        void processInput(GLFWwindow *window, float deltaTime);
+        void UpdatePlayer(float curTime, float deltaTime, GLFWwindow *window);
+        void processInput(GLFWwindow *window, float curTime, float deltaTime);
         void addToWorld(btDiscreteDynamicsWorld * world);
-        void interact();
+        void interact(float curTime);
         bool checkGrounded();
         glm::vec3 getPlayerPos();
         glm::vec3 getPlayerHandPos();
         glm::mat3 getPlayerRotationMatrix();
+        void render(float curTime, float deltaTime);
     private:
         Camera &camera;
         btDiscreteDynamicsWorld *world;
@@ -42,6 +45,14 @@ class Player { // todo: inherit rigid body entity
         bool initialized;
         GameObject* heldItem;
         bool itemInHand;
+        std::shared_ptr<Model> playerModel;
+        std::shared_ptr<Animator> animator;
+        std::shared_ptr<Shader> bonesShader;
+        std::map<std::string, Animation*> animations;
+        Animation* curAnim;
+        std::string playerModelPath;
+        bool playingAnim;
+        float animStart;
 };
 
 #endif
