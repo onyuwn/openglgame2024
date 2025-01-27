@@ -22,7 +22,7 @@ void Animator::updateAnimation(float dt) {
 
 void Animator::playAnimation(Animation* pAnimation) {
     mCurrentAnimation = pAnimation;
-    mCurrentTime = 0.0f;
+    //mCurrentTime = 0.0f;
 }
 
 void Animator::calculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform) {

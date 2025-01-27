@@ -1,12 +1,19 @@
 #include "mainscene.hpp"
 
-MainScene::MainScene(std::string name, UIMaster &ui, Camera &camera) : initialized(false),
-                                                                       ui(ui), camera(camera), physDebugOn(false) {}
+MainScene::MainScene(std::string name, UIMaster &ui, Camera &camera, std::function<void(std::string)> changeSceneCallback) : initialized(false),
+                                                                       ui(ui), camera(camera), physDebugOn(false) {
+    this->changeSceneCallback = changeSceneCallback;
+}
 
 void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
-    if(this->initialized) {
+    if(this->initialized && this->player->isAlive()) {
         this->world->stepSimulation(deltaTime, 7);
         this->player->UpdatePlayer(curTime, deltaTime, window);
+        this->animator->updateAnimation(deltaTime);
+        glm::vec3 playerPos = this->player->getPlayerPos();
+        std::stringstream ppStream;
+        ppStream << playerPos.x << ", " << playerPos.y << ", " << playerPos.z;
+        this->playerPosTxt->setText(ppStream.str());
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -27,6 +34,18 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         this->kitchenItemsModel->draw(*this->basicShader);
 
         for(int i = 0; i < this->models.size(); i++) {}
+
+        auto transforms = this->animator->getFinalBoneMatrices();
+        this->bonesShader->use();
+        bonesShader->setMat4("projection", projection);
+        bonesShader->setMat4("view", view);
+        model = glm::translate(model, glm::vec3(3, 0, 20));
+        bonesShader->setMat4("model", model);
+        for (int i = 0; i < transforms.size(); ++i) {
+            this->bonesShader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+        }
+        this->carrotModel->draw(*this->bonesShader, curTime);
+
         this->player->render(curTime, deltaTime);
         this->basicShader->use();
         this->terrain->render(*this->basicShader);
@@ -40,11 +59,16 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+    } else if (!this->player->isAlive()) {
+        std::cout << "DEAD" << std::endl;
+        this->changeSceneCallback("museum");
     }
 }
 
 void MainScene::initialize(std::function<void(float, std::string)> progressCallback) {
     this->basicShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
+    this->bonesShader = std::make_shared<Shader>("src/shaders/bones.vs", "src/shaders/basic.fs");
+
     std::vector<std::string> skyboxFaces = { // rgba
         "resources/mainskybox/gradiesn.png",
         "resources/mainskybox/gradiesn.png",
@@ -123,10 +147,18 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     terrain->addToWorld(world);
     progressCallback(.05f, "creating kitchen terrain...");
 
-    this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn, "resources/characters/arms2.gltf");
+    this->carrotModel = std::make_shared<Model>((char*)"resources/characters/carrot4.gltf");
+    this->testAnim = new Animation("resources/characters/carrot4.gltf", this->carrotModel.get());
+    this->animator = std::make_shared<Animator>(testAnim);
+
+    this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn, "resources/characters/arms4.gltf");
     player->initialize();
     this->player->addToWorld(this->world);
     progressCallback(.1f, "initializing player...");
+
+    this->playerPosTxt = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 48);
+    this->ui.addTextElement(this->playerPosTxt.get());
+
     this->initialized = true;
     std::cout << "DONE" << std::endl;
 }

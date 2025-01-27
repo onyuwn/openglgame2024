@@ -35,6 +35,7 @@ class Player { // todo: inherit rigid body entity
         glm::vec3 getPlayerPos();
         glm::vec3 getPlayerHandPos();
         glm::mat3 getPlayerRotationMatrix();
+        bool isAlive();
         void render(float curTime, float deltaTime);
     private:
         Camera &camera;

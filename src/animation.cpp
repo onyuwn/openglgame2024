@@ -1,15 +1,12 @@
 #include "animation.hpp"
 
-Animation::Animation(const std::string& animationPath, Model* model) {
+Animation::Animation(const std::string& animationPath, Model* model, int animIndex) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
-    auto animation = scene->mAnimations[0];
-    for(int i = 0; i < scene->mNumAnimations; i++) {
-        std::cout << scene->mAnimations[i]->mName.C_Str() << std::endl;
-    }
+    auto animation = scene->mAnimations[animIndex];
     mDuration = animation->mDuration;
     mTicksPerSecond = animation->mTicksPerSecond;
-    std::cout << "ANIMATION:" << animation->mName.C_Str() << std::endl;
+    std::cout << "ANIMATION:" << animation->mName.C_Str() << " " << animIndex << std::endl;
     readHierarchyData(mRootNode, scene->mRootNode);
     readMissingBones(animation, *model);
 }

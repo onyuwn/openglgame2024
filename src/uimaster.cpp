@@ -8,7 +8,7 @@ UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) : currentDialo
 void UIMaster::render(float deltaTime, float curTime) {
     //iterate over elements and render
     for(int i = 0; i < this->textElements.size(); i++) {
-        this->textElements[i].render(this->scrWidth / 2, this->scrHeight / 2, 1, glm::vec3(1.0, 0.0, 0.0), curTime);
+        this->textElements[i]->render(this->scrWidth / 2, this->scrHeight / 2, 1, glm::vec3(1.0, 0.0, 0.0), curTime);
     }
     // finally show any urgent dialog:
     if(this->dialogShowing) {
@@ -24,7 +24,7 @@ void UIMaster::addElement(UIElement newElement) {
     
 }
 
-void UIMaster::addTextElement(UITextElement& newElement) {
+void UIMaster::addTextElement(UITextElement *newElement) {
     this->textElements.push_back(newElement);
 }
 

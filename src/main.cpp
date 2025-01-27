@@ -25,6 +25,7 @@
 #include "uimaster.hpp"
 #include "progressbar.hpp"
 #include "mainscene.hpp"
+#include "museumscene.hpp"
 
 #include <iostream>
 
@@ -45,6 +46,15 @@ const unsigned int SCR_HEIGHT = 600;
 
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
+
+Scene *curScene = nullptr;
+std::map<std::string, Scene*> sceneMap;
+bool initializingScene = true;
+
+void changeScene(std::string newSceneName) {
+    curScene = sceneMap[newSceneName];
+    initializingScene = true;
+}
 
 int main()
 {
@@ -91,35 +101,64 @@ int main()
     glDepthFunc(GL_LESS); 
 
     UIMaster ui(SCR_WIDTH, SCR_HEIGHT);
-    UITextElement crosshair("resources/text/Angelic Peace.ttf", "X", 48);
+    UITextElement *crosshair = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48);
     UIElement statusBox(300, 40, 0, 0, SCR_WIDTH, SCR_HEIGHT);
     ui.addTextElement(crosshair);
 
     float progress = 0.0f;
-    MainScene scene1("scene1", ui, camera);
+    MainScene *scene1 = new MainScene("scene1", ui, camera, changeScene);
+    MuseumScene *museumScene = new MuseumScene("museumscene", ui, camera);
+    sceneMap.insert({"main", scene1});
+    sceneMap.insert({"museum", museumScene});
+    curScene = sceneMap["main"];
+
     ProgressBar progressBar1;
     bool closeCallback;
-    scene1.initialize([&progress, &window, &progressBar1, &crosshair, &statusBox, &closeCallback](float newProgress, std::string curProcess) { // i tyhinks this workds lol
-        float curTime = static_cast<float>(glfwGetTime());
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        progress += newProgress;
-        progressBar1.update(progress);
-        crosshair.setText("Please be patient with me...");
-        crosshair.render(150, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 0.0, 0.0), curTime);
-        statusBox.render(0, closeCallback);
-        crosshair.setText(curProcess);
-        crosshair.render(30, 15, .5, glm::vec3(1.0, 1.0, 1.0), curTime);
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    });
+
+    // scene1.initialize([&progress, &window, &progressBar1, &crosshair, &statusBox, &closeCallback](float newProgress, std::string curProcess) { // i tyhinks this workds lol
+    //     float curTime = static_cast<float>(glfwGetTime());
+    //     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    //     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //     progress += newProgress;
+    //     progressBar1.update(progress);
+    //     crosshair.setText("Please be patient with me...");
+    //     crosshair.render(150, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 0.0, 0.0), curTime);
+    //     statusBox.render(0, closeCallback);
+    //     crosshair.setText(curProcess);
+    //     crosshair.render(30, 15, .5, glm::vec3(1.0, 1.0, 1.0), curTime);
+    //     glfwSwapBuffers(window);
+    //     glfwPollEvents();
+    // });
 
     while (!glfwWindowShouldClose(window))
     {
-        float currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-        scene1.render(deltaTime, currentFrame, window);
+        if(initializingScene) {
+            curScene->initialize([&progress, &window, &progressBar1, &crosshair, &statusBox, &closeCallback](float newProgress, std::string curProcess) {
+                float curTime = static_cast<float>(glfwGetTime());
+                glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                progress += newProgress;
+                progressBar1.update(progress);
+                crosshair->setText("Please be patient with me...");
+                crosshair->render(150, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 0.45, 0.9), curTime);
+                statusBox.render(0, closeCallback);
+                crosshair->setText(curProcess);
+                crosshair->render(30, 15, .5, glm::vec3(1.0, 0.45, 0.9), curTime);
+                glfwSwapBuffers(window);
+                glfwPollEvents();
+            });
+            crosshair->setText("x");
+            initializingScene = false;
+        } else {
+            float currentFrame = static_cast<float>(glfwGetTime());
+            deltaTime = currentFrame - lastFrame;
+            lastFrame = currentFrame;
+            if(curScene) {
+                curScene->render(deltaTime, currentFrame, window); // move to curscene var have callback to switch scene
+            } else {
+                std::cout << "NO SCENE ATTACHED" << std::endl;
+            }
+        }
     }
 
     glfwTerminate();

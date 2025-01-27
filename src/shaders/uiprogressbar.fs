@@ -28,9 +28,9 @@ void main() {
 
     if(texCoords.x < borderThicknessX || texCoords.x > 1.0 - borderThicknessX || texCoords.y < borderThicknessY || texCoords.y > 1.0 - borderThicknessY) {
         if(texCoords.y > progress) {
-            color = vec4(1.0, 0.0, 0.0, 1.0) + (noiseColor);
+            color = vec4(1.0, 0.45, 0.9, 1.0) + (noiseColor);
         } else {
-            color = vec4(1.0, 0.0, 0.0, 1.0);
+            color = vec4(1.0, 0.45, 0.9, 1.0);
         }
     }
 }

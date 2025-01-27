@@ -37,9 +37,12 @@ void Player::initialize() {
 
     this->bonesShader = std::make_shared<Shader>("src/shaders/bones.vs", "src/shaders/basic.fs");
     this->playerModel = std::make_shared<Model>((char*)playerModelPath.data());
-    Animation* grabAnim = new Animation(playerModelPath, this->playerModel.get());
+    Animation* grabAnim = new Animation(playerModelPath, this->playerModel.get(),1);
+    Animation* idleAnim = new Animation(playerModelPath, this->playerModel.get(), 0);
     this->animator = std::make_shared<Animator>(grabAnim);
+    this->animator->playAnimation(idleAnim);
     animations.insert({"grab", grabAnim});
+    animations.insert({"idle", idleAnim});
 }
 
 void Player::render(float curTime, float deltaTime) {
@@ -47,7 +50,10 @@ void Player::render(float curTime, float deltaTime) {
         this->animator->updateAnimation(deltaTime);
     } else {
         playingAnim = false;
-        curAnim = nullptr;
+        //curAnim = nullptr;
+        curAnim = this->animations["idle"];
+        this->animator->playAnimation(curAnim);
+        this->animator->updateAnimation(deltaTime);
     }
     glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos() + glm::vec3(0,.75,-.1));
     model = glm::scale(model, glm::vec3(.25, .25, .25));
@@ -159,7 +165,6 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime)
         btScalar dampingFactor = 0.98f;  // Damping factor for smooth deceleration
         playerRigidBody->setLinearVelocity(currentVelocity * dampingFactor);
     } else { // in the air
-        printf("AIR\n");
         btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
         btVector3 clampedVelocity = currentVelocity;
         float maxSpeed = 3.0f;  // Set the max horizontal speed
@@ -205,6 +210,7 @@ void Player::interact(float curTime) {
             GameObjectInteractionType interactionType = hitObject->getInteraction();
             // play grab anim once
             curAnim = this->animations["grab"];
+            this->animator->playAnimation(curAnim);
             playingAnim = true;
             animStart = curTime;
             printf("animstart: %f", curTime);
@@ -253,5 +259,9 @@ glm::vec3 Player::getPlayerHandPos() {
 }
 
 glm::mat3 Player::getPlayerRotationMatrix() {
-    return glm::mat3(this->camera.Right, this->camera.Up, -this->camera.Front);
+    return glm::mat3(this->camera.Right, this->camera.Up, this->camera.Front);
+}
+
+bool Player::isAlive() {
+    return this->getPlayerPos().y > -20.0f;
 }

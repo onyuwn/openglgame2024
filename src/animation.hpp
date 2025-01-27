@@ -25,7 +25,7 @@ class Animation
 {
     public:
         Animation() = default;
-        Animation(const std::string& animationPath, Model* model);
+        Animation(const std::string& animationPath, Model* model, int animIndex = 0);
         Bone* findBone(const std::string& name);
 
         inline float getTicksPerSecond() { return mTicksPerSecond; }
