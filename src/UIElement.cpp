@@ -128,8 +128,9 @@ void UIElement::init(int uiWidth, int uiHeight, int xPos, int yPos, float window
     }
 }
 
-void UIElement::render(float deltaTime, bool &closeCallback) {
+void UIElement::render(float deltaTime, bool &closeCallback, glm::vec4 color) {
     uiShader.use();
+    uiShader.setVec4("inColor", color);
 
     if(this->imagePath.length() > 0) {
         if(frames.size() > 1 && curFrame < frames.size() && !reverse) {

@@ -115,35 +115,26 @@ int main()
     ProgressBar progressBar1;
     bool closeCallback;
 
-    // scene1.initialize([&progress, &window, &progressBar1, &crosshair, &statusBox, &closeCallback](float newProgress, std::string curProcess) { // i tyhinks this workds lol
-    //     float curTime = static_cast<float>(glfwGetTime());
-    //     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    //     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //     progress += newProgress;
-    //     progressBar1.update(progress);
-    //     crosshair.setText("Please be patient with me...");
-    //     crosshair.render(150, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 0.0, 0.0), curTime);
-    //     statusBox.render(0, closeCallback);
-    //     crosshair.setText(curProcess);
-    //     crosshair.render(30, 15, .5, glm::vec3(1.0, 1.0, 1.0), curTime);
-    //     glfwSwapBuffers(window);
-    //     glfwPollEvents();
-    // });
+    UISpriteAnim loadingAnim("resources/ui/hourglasssheet.png", 256, 256, 600, 10);
+    loadingAnim.initialize();
 
     while (!glfwWindowShouldClose(window))
     {
         if(initializingScene) {
-            curScene->initialize([&progress, &window, &progressBar1, &crosshair, &statusBox, &closeCallback](float newProgress, std::string curProcess) {
+            curScene->initialize([&progress, &window, &progressBar1, &crosshair, &statusBox, &closeCallback, &loadingAnim](float newProgress, std::string curProcess) {
                 float curTime = static_cast<float>(glfwGetTime());
+                deltaTime = curTime - lastFrame;
+                lastFrame = curTime;
                 glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                loadingAnim.render(deltaTime * 100);
                 progress += newProgress;
                 progressBar1.update(progress);
                 crosshair->setText("Please be patient with me...");
-                crosshair->render(150, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 0.45, 0.9), curTime);
-                statusBox.render(0, closeCallback);
+                crosshair->render(150, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(0.0, 1.0, 0.0), curTime);
+                statusBox.render(0, closeCallback, glm::vec4(1, 0, .816, 1.0));
                 crosshair->setText(curProcess);
-                crosshair->render(30, 15, .5, glm::vec3(1.0, 0.45, 0.9), curTime);
+                crosshair->render(30, 15, .5, glm::vec3(0.0, 1.0, 0.0), curTime);
                 glfwSwapBuffers(window);
                 glfwPollEvents();
             });

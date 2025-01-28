@@ -4,6 +4,7 @@
 #include <vector>
 #include "UIElement.hpp"
 #include "uitextelement.hpp"
+#include "uispriteanim.hpp"
 #include "dialogue.hpp"
 #include <string>
 
@@ -21,6 +22,7 @@ class UIMaster {
         unsigned int scrHeight;
         std::vector<UIElement> elements;
         std::vector<UITextElement*> textElements;
+        std::shared_ptr<UISpriteAnim> loadingAnim;
         DialogueElement currentDialog;
         bool dialogShowing;
 };

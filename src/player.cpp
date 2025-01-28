@@ -83,8 +83,11 @@ void Player::UpdatePlayer(float curTime, float deltaTime, GLFWwindow *window) {
 
 void Player::processInput(GLFWwindow *window, float curTime, float deltaTime)
 { // this should just apply force to the rigid body, translate view matrix with rigid body pos through getter method in the main loop
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        // todo: release mouse, pause game, show menu UI
+        //glfwSetWindowShouldClose(window, true); 
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
 
     //this->playerRigidBody->activate(true);
     float velocity = (this->camera.MovementSpeed * deltaTime);
