@@ -8,7 +8,8 @@ Piggy::Piggy(std::string name, Shader &shader, Model &piggyModel) : name(name), 
         "it never\nstarted",
         "I'll never be satisfied",
         "i can wait",
-        "it won't hit it hits\nit won't hit"
+        "it won't hit it hits\nit won't hit",
+        "\0"
     };
     this->lines = linesTemp;
     this->lineIdx = -1;

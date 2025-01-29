@@ -29,15 +29,6 @@ void UIElement::init(int uiWidth, int uiHeight, int xPos, int yPos, float window
     float bottomRightX = xPos + uiWidth;
     float bottomRightY = yPos + uiHeight;
 
-    // std::vector<glm::vec3> vertices = {
-    //     glm::vec3(topRightX, topRightY, 0),
-    //     glm::vec3(bottomRightX, bottomRightY, 0),
-    //     glm::vec3(topLeftX, topLeftY, 0),
-    //     glm::vec3(bottomRightX, bottomRightY, 0),
-    //     glm::vec3(bottomLeftX, bottomLeftY, 0),
-    //     glm::vec3(topLeftX, topLeftY, 0),
-    // };
-
     std::vector<glm::vec3> vertices = {
         glm::vec3(bottomLeftX, bottomLeftY, 0),
         glm::vec3(topLeftX, topLeftY, 0),
@@ -97,16 +88,6 @@ void UIElement::init(int uiWidth, int uiHeight, int xPos, int yPos, float window
                 std::cout << "UIElement:: Failed to load texture";
             }
         }
-
-        //create tex coords
-        // std::vector<glm::vec2> uvs = {
-        //     glm::vec2(1.0f, 1.0f),  // Top-right
-        //     glm::vec2(1.0f, 0.0f),  // Bottom-right
-        //     glm::vec2(0.0f, 1.0f),  // Top-left
-        //     glm::vec2(1.0f, 0.0f),  // Bottom-right
-        //     glm::vec2(0.0f, 0.0f),  // Bottom-left
-        //     glm::vec2(0.0f, 1.0f)   // Top-left
-        // };
 
         std::vector<glm::vec2> uvs = {
             glm::vec2(0.0f, 0.0f),  // Top-right

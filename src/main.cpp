@@ -127,7 +127,7 @@ int main()
                 lastFrame = curTime;
                 glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                loadingAnim.render(deltaTime * 100);
+                loadingAnim.render(deltaTime);
                 progress += newProgress;
                 progressBar1.update(progress);
                 crosshair->setText("Please be patient with me...");

@@ -23,7 +23,7 @@ class UIMaster {
         std::vector<UIElement> elements;
         std::vector<UITextElement*> textElements;
         std::shared_ptr<UISpriteAnim> loadingAnim;
-        DialogueElement currentDialog;
+        std::shared_ptr<DialogueElement> currentDialog;
         bool dialogShowing;
 };
 

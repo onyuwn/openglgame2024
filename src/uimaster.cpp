@@ -1,6 +1,6 @@
 #include "uimaster.hpp"
 
-UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) : currentDialog(currentDialog) {
+UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) {
     this->scrWidth = scrWidth;
     this->scrHeight = scrHeight;
 }
@@ -12,7 +12,7 @@ void UIMaster::render(float deltaTime, float curTime) {
     }
     // finally show any urgent dialog:
     if(this->dialogShowing) {
-        this->currentDialog.render(200, 200, 1, glm::vec3(1.0, 0, 0), deltaTime, glm::vec2(120,100), curTime);
+        this->currentDialog->render(200, 200, 1, glm::vec3(1.0, 0, 0), deltaTime, glm::vec2(120,100), curTime);
     }
 }
 
@@ -31,16 +31,14 @@ void UIMaster::addTextElement(UITextElement *newElement) {
 void UIMaster::showDialog(std::string text) {
     if(this->dialogShowing) {
         // update text of current dialog
-        this->currentDialog.updateText(text);
+        this->currentDialog->updateText(text);
     } else {
-        UITextElement textElement("resources/text/Angelic Peace.ttf", text, 48);
-        UIElement dialogBox(600, 200, 100, 30, (float)this->scrWidth, (float)this->scrHeight, "resources/crumpleanim");
-        this->currentDialog = DialogueElement(textElement, dialogBox);
+        this->currentDialog = std::make_shared<DialogueElement>();
         this->dialogShowing = true;
-        this->currentDialog.activate();
+        this->currentDialog->activate();
     }
 }
 
 void UIMaster::clearDialog() { // add callback to here to reset dialog showing
-    this->currentDialog.reset();
+    this->currentDialog->reset();
 }
