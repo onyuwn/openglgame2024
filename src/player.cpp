@@ -77,55 +77,24 @@ void Player::addToWorld(btDiscreteDynamicsWorld * world) {
     world->addRigidBody(this->playerRigidBody);
 }
 
-void Player::UpdatePlayer(float curTime, float deltaTime, GLFWwindow *window) {
-    processInput(window, curTime, deltaTime);
+void Player::UpdatePlayer(float curTime, float deltaTime, GLFWwindow *window, bool &pauseCallback) {
+    processInput(window, curTime, deltaTime, pauseCallback);
 }
 
-void Player::processInput(GLFWwindow *window, float curTime, float deltaTime)
+void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bool &pauseCallback)
 { // this should just apply force to the rigid body, translate view matrix with rigid body pos through getter method in the main loop
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && !controlsDisabled) {
         // todo: release mouse, pause game, show menu UI
         //glfwSetWindowShouldClose(window, true); 
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        pauseCallback = true;
+        controlsDisabled = true;
+    } else if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && controlsDisabled) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        pauseCallback = false;
+        controlsDisabled = false;
     }
 
-    //this->playerRigidBody->activate(true);
-    float velocity = (this->camera.MovementSpeed * deltaTime);
-    btTransform curTransform = this->playerRigidBody->getWorldTransform();
-    btVector3 curPos = curTransform.getOrigin();
-    glm::vec3 cameraFrontNormal = glm::normalize(glm::vec3(this->camera.Front.x, 0, this->camera.Front.z));
-    glm::vec3 cameraRightNormal = glm::normalize(glm::vec3(this->camera.Right.x, 0, this->camera.Right.z));
-    btVector3 btFront = btVector3(cameraFrontNormal.x, 0, cameraFrontNormal.z);
-    btVector3 btRight = btVector3(cameraRightNormal.x, 0, cameraRightNormal.z);
-
-    btVector3 force(0, 0, 0);  // Reset force each frame
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        this->playerRigidBody->setActivationState(1);
-        this->playerRigidBody->activate(true);
-        force += btFront * velocity * 10000;
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        this->playerRigidBody->setActivationState(1);
-        this->playerRigidBody->activate(true);
-        force += btFront * velocity * -10000;
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        this->playerRigidBody->setActivationState(1);
-        this->playerRigidBody->activate(true);
-        force += btRight * velocity * -10000;
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        this->playerRigidBody->setActivationState(1);
-        this->playerRigidBody->activate(true);
-        force += btRight * velocity * 10000;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && checkGrounded()) {
-        this->playerRigidBody->setActivationState(1);
-        this->playerRigidBody->activate(true);
-        force += btVector3(0, 1, 0) * velocity * 50000;
-    }
     if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && !interactRequested) {
         this->interact(curTime);
         interactRequested = true;
@@ -139,57 +108,97 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime)
         physDebugOn = false;
     }
 
-    // Apply force smoothly
-    if (force.length() != 0 && checkGrounded()) {
-        btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
-        btVector3 clampedVelocity = currentVelocity;
-        float maxSpeed = 10.0f;  // Set the max horizontal speed
-        if (clampedVelocity.x() > maxSpeed) {
-            clampedVelocity.setX(maxSpeed);
+    //this->playerRigidBody->activate(true);
+    float velocity = (this->camera.MovementSpeed * deltaTime);
+    btTransform curTransform = this->playerRigidBody->getWorldTransform();
+    btVector3 curPos = curTransform.getOrigin();
+    glm::vec3 cameraFrontNormal = glm::normalize(glm::vec3(this->camera.Front.x, 0, this->camera.Front.z));
+    glm::vec3 cameraRightNormal = glm::normalize(glm::vec3(this->camera.Right.x, 0, this->camera.Right.z));
+    btVector3 btFront = btVector3(cameraFrontNormal.x, 0, cameraFrontNormal.z);
+    btVector3 btRight = btVector3(cameraRightNormal.x, 0, cameraRightNormal.z);
+
+    btVector3 force(0, 0, 0);  // Reset force each frame
+
+    if(!controlsDisabled) {
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            this->playerRigidBody->setActivationState(1);
+            this->playerRigidBody->activate(true);
+            force += btFront * velocity * 10000;
         }
-        if (clampedVelocity.x() < -maxSpeed) {
-            clampedVelocity.setX(-maxSpeed);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            this->playerRigidBody->setActivationState(1);
+            this->playerRigidBody->activate(true);
+            force += btFront * velocity * -10000;
         }
-        if (clampedVelocity.z() > maxSpeed) {
-            clampedVelocity.setZ(maxSpeed);
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            this->playerRigidBody->setActivationState(1);
+            this->playerRigidBody->activate(true);
+            force += btRight * velocity * -10000;
         }
-        if (clampedVelocity.z() < -maxSpeed) {
-            clampedVelocity.setZ(-maxSpeed);
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            this->playerRigidBody->setActivationState(1);
+            this->playerRigidBody->activate(true);
+            force += btRight * velocity * 10000;
         }
 
-        // Set the vertical velocity (y) without clamping it
-        clampedVelocity.setY(currentVelocity.y());
-
-        // Apply the clamped velocity back to the rigid body (only affects horizontal speed)
-        playerRigidBody->setLinearVelocity(clampedVelocity);
-        this->playerRigidBody->applyCentralForce(force);
-    } else if(checkGrounded()) {
-        btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
-        btScalar dampingFactor = 0.98f;  // Damping factor for smooth deceleration
-        playerRigidBody->setLinearVelocity(currentVelocity * dampingFactor);
-    } else { // in the air
-        btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
-        btVector3 clampedVelocity = currentVelocity;
-        float maxSpeed = 3.0f;  // Set the max horizontal speed
-        if (clampedVelocity.x() > maxSpeed) {
-            clampedVelocity.setX(maxSpeed);
-        }
-        if (clampedVelocity.x() < -maxSpeed) {
-            clampedVelocity.setX(-maxSpeed);
-        }
-        if (clampedVelocity.z() > maxSpeed) {
-            clampedVelocity.setZ(maxSpeed);
-        }
-        if (clampedVelocity.z() < -maxSpeed) {
-            clampedVelocity.setZ(-maxSpeed);
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && checkGrounded()) {
+            this->playerRigidBody->setActivationState(1);
+            this->playerRigidBody->activate(true);
+            force += btVector3(0, 1, 0) * velocity * 50000;
         }
 
-        // Set the vertical velocity (y) without clamping it
-        clampedVelocity.setY(currentVelocity.y());
+        // Apply force smoothly
+        if (force.length() != 0 && checkGrounded()) {
+            btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
+            btVector3 clampedVelocity = currentVelocity;
+            float maxSpeed = 10.0f;  // Set the max horizontal speed
+            if (clampedVelocity.x() > maxSpeed) {
+                clampedVelocity.setX(maxSpeed);
+            }
+            if (clampedVelocity.x() < -maxSpeed) {
+                clampedVelocity.setX(-maxSpeed);
+            }
+            if (clampedVelocity.z() > maxSpeed) {
+                clampedVelocity.setZ(maxSpeed);
+            }
+            if (clampedVelocity.z() < -maxSpeed) {
+                clampedVelocity.setZ(-maxSpeed);
+            }
 
-        // Apply the clamped velocity back to the rigid body (only affects horizontal speed)
-        playerRigidBody->setLinearVelocity(clampedVelocity);
-        this->playerRigidBody->applyCentralForce(force);
+            // Set the vertical velocity (y) without clamping it
+            clampedVelocity.setY(currentVelocity.y());
+
+            // Apply the clamped velocity back to the rigid body (only affects horizontal speed)
+            playerRigidBody->setLinearVelocity(clampedVelocity);
+            this->playerRigidBody->applyCentralForce(force);
+        } else if(checkGrounded()) {
+            btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
+            btScalar dampingFactor = 0.98f;  // Damping factor for smooth deceleration
+            playerRigidBody->setLinearVelocity(currentVelocity * dampingFactor);
+        } else { // in the air
+            btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
+            btVector3 clampedVelocity = currentVelocity;
+            float maxSpeed = 3.0f;  // Set the max horizontal speed
+            if (clampedVelocity.x() > maxSpeed) {
+                clampedVelocity.setX(maxSpeed);
+            }
+            if (clampedVelocity.x() < -maxSpeed) {
+                clampedVelocity.setX(-maxSpeed);
+            }
+            if (clampedVelocity.z() > maxSpeed) {
+                clampedVelocity.setZ(maxSpeed);
+            }
+            if (clampedVelocity.z() < -maxSpeed) {
+                clampedVelocity.setZ(-maxSpeed);
+            }
+
+            // Set the vertical velocity (y) without clamping it
+            clampedVelocity.setY(currentVelocity.y());
+
+            // Apply the clamped velocity back to the rigid body (only affects horizontal speed)
+            playerRigidBody->setLinearVelocity(clampedVelocity);
+            this->playerRigidBody->applyCentralForce(force);
+        }
     }
 }
 
@@ -223,9 +232,11 @@ void Player::interact(float curTime) {
                 hitObject->setPos([this]() { return getPlayerPos(); });
                 if(dialogLine == "\0") {
                     this->uiCallback.clearDialog();
+                    controlsDisabled = false;
                 } else {
                     std::cout << dialogLine << std::endl;
                     this->uiCallback.showDialog(dialogLine);
+                    controlsDisabled = true;
                 }
             } else if(interactionType == HOLD_ITEM) {
                 hitObject->setPos([this]() { return getPlayerHandPos(); });
@@ -267,4 +278,8 @@ glm::mat3 Player::getPlayerRotationMatrix() {
 
 bool Player::isAlive() {
     return this->getPlayerPos().y > -20.0f;
+}
+
+bool Player::isControlDisabled() {
+    return this->controlsDisabled;
 }

@@ -3,6 +3,7 @@
 UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) {
     this->scrWidth = scrWidth;
     this->scrHeight = scrHeight;
+    this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, glm::vec4(1.0,0.0,0.0,.5));
 }
 
 void UIMaster::render(float deltaTime, float curTime) {
@@ -14,13 +15,19 @@ void UIMaster::render(float deltaTime, float curTime) {
     if(this->dialogShowing) {
         this->currentDialog->render(200, 200, 1, glm::vec3(1.0, 0, 0), deltaTime, glm::vec2(120,100), curTime);
     }
+
+    if(gamePaused && this->pauseMenuPanel) { // show menu
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        this->pauseMenuPanel->render(deltaTime);
+    }
 }
 
 void UIMaster::showSceneLoadProgress(float progress) {
     
 }
 
-void UIMaster::addElement(UIElement newElement) {
+void UIMaster::addElement(UIElement* newElement) {
     
 }
 

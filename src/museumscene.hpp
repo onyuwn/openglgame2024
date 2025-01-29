@@ -35,6 +35,7 @@ class MuseumScene : public Scene {
         std::shared_ptr<Animator> playerAnimator;
 
         bool initialized;
+        bool paused;
         bool physDebugOn;
 
         Camera &camera;

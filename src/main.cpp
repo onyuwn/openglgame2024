@@ -102,7 +102,6 @@ int main()
 
     UIMaster ui(SCR_WIDTH, SCR_HEIGHT);
     UITextElement *crosshair = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48);
-    UIElement statusBox(300, 40, 0, 0, SCR_WIDTH, SCR_HEIGHT);
     ui.addTextElement(crosshair);
 
     float progress = 0.0f;
@@ -121,7 +120,7 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         if(initializingScene) {
-            curScene->initialize([&progress, &window, &progressBar1, &crosshair, &statusBox, &closeCallback, &loadingAnim](float newProgress, std::string curProcess) {
+            curScene->initialize([&progress, &window, &progressBar1, &crosshair, &closeCallback, &loadingAnim](float newProgress, std::string curProcess) {
                 float curTime = static_cast<float>(glfwGetTime());
                 deltaTime = curTime - lastFrame;
                 lastFrame = curTime;
@@ -132,7 +131,6 @@ int main()
                 progressBar1.update(progress);
                 crosshair->setText("Please be patient with me...");
                 crosshair->render(150, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(0.0, 1.0, 0.0), curTime);
-                statusBox.render(0, closeCallback, glm::vec4(1, 0, .816, 1.0));
                 crosshair->setText(curProcess);
                 crosshair->render(30, 15, .5, glm::vec3(0.0, 1.0, 0.0), curTime);
                 glfwSwapBuffers(window);

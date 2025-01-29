@@ -8,7 +8,7 @@ MuseumScene::MuseumScene(std::string name, UIMaster &ui, Camera &camera) : initi
 void MuseumScene::render(float deltaTime, float curTime, GLFWwindow *window) {
     if(this->initialized) {
         this->world->stepSimulation(deltaTime, 7);
-        this->player->UpdatePlayer(curTime, deltaTime, window);
+        this->player->UpdatePlayer(curTime, deltaTime, window, paused);
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

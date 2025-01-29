@@ -8,12 +8,15 @@ MainScene::MainScene(std::string name, UIMaster &ui, Camera &camera, std::functi
 void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
     if(this->initialized && this->player->isAlive()) {
         this->world->stepSimulation(deltaTime, 7);
-        this->player->UpdatePlayer(curTime, deltaTime, window);
+        this->player->UpdatePlayer(curTime, deltaTime, window, paused);
         this->animator->updateAnimation(deltaTime);
         glm::vec3 playerPos = this->player->getPlayerPos();
         std::stringstream ppStream;
         ppStream << playerPos.x << ", " << playerPos.y << ", " << playerPos.z;
         this->playerPosTxt->setText(ppStream.str());
+
+        this->camera.controlsDisabled = this->player->isControlDisabled();
+        this->ui.gamePaused = paused;
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -7,7 +7,6 @@
 #include "shader.hpp"
 #include "rigidbodyentity.hpp"
 #include "dialogue.hpp"
-#include "UIElement.hpp"
 #include "collisionshapetype.hpp"
 #include "gameobject.hpp"
 #include "gameobjectinteractiontype.hpp"

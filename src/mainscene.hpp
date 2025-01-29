@@ -57,6 +57,7 @@ class MainScene : public Scene {
         UIMaster &ui;
 
         bool initialized;
+        bool paused;
         bool physDebugOn;
 
         std::function<void(std::string)> changeSceneCallback;

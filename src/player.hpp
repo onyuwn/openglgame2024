@@ -27,8 +27,8 @@ class Player { // todo: inherit rigid body entity
 
         Player(Camera &camera, btDiscreteDynamicsWorld *world, UIMaster &uiCallback, bool &physDebugCallback, std::string playerModelPath); // todo: add player model
         void initialize();
-        void UpdatePlayer(float curTime, float deltaTime, GLFWwindow *window);
-        void processInput(GLFWwindow *window, float curTime, float deltaTime);
+        void UpdatePlayer(float curTime, float deltaTime, GLFWwindow *window, bool &pauseCallback);
+        void processInput(GLFWwindow *window, float curTime, float deltaTime, bool &pauseCallback);
         void addToWorld(btDiscreteDynamicsWorld * world);
         void interact(float curTime);
         bool checkGrounded();
@@ -36,11 +36,13 @@ class Player { // todo: inherit rigid body entity
         glm::vec3 getPlayerHandPos();
         glm::mat3 getPlayerRotationMatrix();
         bool isAlive();
+        bool isControlDisabled();
         void render(float curTime, float deltaTime);
     private:
         Camera &camera;
         btDiscreteDynamicsWorld *world;
         bool interactRequested;
+        bool controlsDisabled;
         UIMaster &uiCallback;
         bool &physDebugOn;
         bool initialized;
