@@ -18,6 +18,9 @@ class UIMaster {
         void addTextElement(UITextElement *newElement);
         void showDialog(std::string text);
         void clearDialog();
+        void checkClick(double mouseX, double mouseY);
+        void checkHover(float mouseX, float mouseY);
+        void setMousePos(double mouseX, double mouseY);
         bool gamePaused;
     private:
         unsigned int scrWidth;
@@ -27,6 +30,7 @@ class UIMaster {
         std::shared_ptr<UISpriteAnim> loadingAnim;
         std::shared_ptr<DialogueElement> currentDialog;
         std::shared_ptr<UIPanel> pauseMenuPanel;
+        glm::vec2 mousePos;
         bool dialogShowing;
 };
 

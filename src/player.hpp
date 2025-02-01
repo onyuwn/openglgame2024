@@ -55,6 +55,7 @@ class Player { // todo: inherit rigid body entity
         Animation* curAnim;
         std::string playerModelPath;
         bool playingAnim;
+        bool clickRequested;
         float animStart;
 };
 

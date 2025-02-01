@@ -119,6 +119,20 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
 
     btVector3 force(0, 0, 0);  // Reset force each frame
 
+    double xPos, yPos;
+    glfwGetCursorPos(window, &xPos, &yPos);
+    this->uiCallback.setMousePos(xPos, (yPos - 600) * -1);
+
+    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) { // and menu open
+        clickRequested = true;
+    }
+
+    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE && clickRequested) {
+        std::cout << "CLICK: " << xPos << ", " << (yPos - 600) * -1 <<std::endl;
+        this->uiCallback.checkClick(xPos, (yPos - 600) * -1);
+        clickRequested = false;
+    }
+
     if(!controlsDisabled) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             this->playerRigidBody->setActivationState(1);

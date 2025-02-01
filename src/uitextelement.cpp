@@ -54,6 +54,7 @@ void UITextElement::initText() {
             glm::ivec2(this->fontFace->glyph->bitmap_left, this->fontFace->glyph->bitmap_top),
             static_cast<unsigned int>(this->fontFace->glyph->advance.x)
         };
+
         Characters.insert(std::pair<char, Character>(c, character));
     }
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -132,4 +133,18 @@ void UITextElement::render(float x, float y, float scale, glm::vec3 color, float
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
+}
+
+glm::vec2 UITextElement::getDims() {
+    int totalWidth = 0;
+    int totalHeight = 0;
+    std::string::const_iterator c;
+
+    for(c = this->text.begin(); c != this->text.end(); c++) {
+        Character ch = Characters[*c];
+        totalWidth+=ch.Size.x;
+        totalHeight+=ch.Size.y;
+    }
+
+    return glm::vec2(totalWidth, totalHeight);
 }

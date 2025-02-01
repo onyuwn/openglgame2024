@@ -52,6 +52,7 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         this->player->render(curTime, deltaTime);
         this->basicShader->use();
         this->terrain->render(*this->basicShader);
+        this->desertTerrain->render(*this->basicShader);
         this->skybox->render(glm::mat4(glm::mat3(view)), projection);
 
         if(this->physDebugOn) {
@@ -81,7 +82,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
         "resources/mainskybox/gradiesn.png",
     };
     this->skybox = std::make_shared<Skybox>(skyboxFaces);
-    progressCallback(.1f, "creating skybox");
+    progressCallback(.05f, "creating skybox");
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
     btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
     btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -92,7 +93,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
     world->setDebugDrawer(debugDrawer.get());
 
-    progressCallback(.1f, "initializing physics...");
+    progressCallback(.05f, "initializing physics...");
     stbi_set_flip_vertically_on_load(false);
     world->setGravity(btVector3(0,-9.81f,0));
 
@@ -101,14 +102,16 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     piggy->initialize();
     this->addGameObject(piggy);
     piggy->addToWorld(this->world);
-    progressCallback(.1f, "loading piggies...");
+    progressCallback(.05f, "loading piggies...");
+    progressCallback(.05f, "hi :_)...");
 
     this->trashModel = std::make_shared<Model>((char*)"resources/trash/trashbag.obj");
     std::shared_ptr<TrashBag> trashBag = std::make_shared<TrashBag>(*basicShader, *trashModel);
     trashBag->initialize();
     this->addGameObject(trashBag);
     trashBag->addToWorld(this->world);
-    progressCallback(.1f, "loading trash...");
+    progressCallback(.05f, "loading trash...");
+    progressCallback(.05f, "mygofd...");
 
     this->kitchenDoorModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchendoors1.obj");
     std::shared_ptr<Door> door = std::make_shared<Door>(*basicShader, *kitchenDoorModel, glm::vec3(8.7, 1.86, 10.42));
@@ -149,6 +152,12 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     terrain->initTerrain();
     terrain->addToWorld(world);
     progressCallback(.05f, "creating kitchen terrain...");
+
+    this->desertTerrainModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchendesertterrain.obj");
+    this->desertTerrain = std::make_shared<Terrain>(*desertTerrainModel);
+    desertTerrain->initTerrain();
+    desertTerrain->addToWorld(world);
+    progressCallback(.05f, "creating desert terrain...");
 
     this->carrotModel = std::make_shared<Model>((char*)"resources/characters/carrot4.gltf");
     this->testAnim = new Animation("resources/characters/carrot4.gltf", this->carrotModel.get());

@@ -26,6 +26,8 @@ class UITextElement {
             unsigned int Advance;
         };
 
+        glm::vec2 getDims();
+
     private:
         std::string text;
         std::string fontPath;
