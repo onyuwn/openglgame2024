@@ -101,7 +101,7 @@ int main()
     glDepthFunc(GL_LESS); 
 
     UIMaster ui(SCR_WIDTH, SCR_HEIGHT);
-    UITextElement *crosshair = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48);
+    UITextElement *crosshair = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48, 400, 300);
     ui.addTextElement(crosshair);
 
     float progress = 0.0f;
@@ -130,13 +130,16 @@ int main()
                 progress += newProgress;
                 progressBar1.update(progress);
                 crosshair->setText("Please be patient with me...");
-                crosshair->render(150, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(0.0, 1.0, 0.0), curTime);
+                crosshair->setPos(glm::vec2(400 - (crosshair->getDims().x / 2), 300));
+                crosshair->render(1.0, glm::vec3(0.0, 1.0, 0.0), curTime);
                 crosshair->setText(curProcess);
-                crosshair->render(30, 15, .5, glm::vec3(0.0, 1.0, 0.0), curTime);
+                crosshair->setPos(glm::vec2(10, 10));
+                crosshair->render(.5, glm::vec3(0.0, 1.0, 0.0), curTime);
                 glfwSwapBuffers(window);
                 glfwPollEvents();
             });
             crosshair->setText("x");
+            crosshair->setPos(glm::vec2(400 - (crosshair->getDims().x / 2), 300 + (crosshair->getDims().y / 2)));
             initializingScene = false;
         } else {
             float currentFrame = static_cast<float>(glfwGetTime());

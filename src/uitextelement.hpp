@@ -14,9 +14,9 @@
 
 class UITextElement {
     public:
-        UITextElement(std::string fontPath, std::string text, int fontSize);
+        UITextElement(std::string fontPath, std::string text, int fontSize, int xPos, int yPos);
         void initText();
-        void render(float x, float y, float scale, glm::vec3 color, float curTime);
+        void render(float scale, glm::vec3 color, float curTime);
         void setText(std::string text);
 
         struct Character {
@@ -27,6 +27,8 @@ class UITextElement {
         };
 
         glm::vec2 getDims();
+        glm::vec2 getPos();
+        void setPos(glm::vec2 newPos);
 
     private:
         std::string text;
@@ -36,6 +38,8 @@ class UITextElement {
         std::map<char, Character> Characters;
         Shader textShader;
         unsigned int VAO, VBO;
+        int x;
+        int y;
 };
 
 #endif

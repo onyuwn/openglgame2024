@@ -72,7 +72,7 @@ void UIPanel::init(int width, int height, int xPos, int yPos, float windowWidth,
 
     this->uiMesh = std::make_shared<UIMesh>(vertices, uvs);
     this->uiPanelShader = std::make_shared<Shader>("src/shaders/uielement.vs", "src/shaders/uielement.fs");
-    UIButton *quitButton = new UIButton(200, 50, 300, 100, 800.0f, 600.0f, glm::vec4(0.0, 0.0, 1.0, 1.0), "QUIT", clickQuit);
+    UIButton *quitButton = new UIButton(200, 50, 300, 300, 800.0f, 600.0f, glm::vec4(0.0, 0.0, 1.0, 1.0), "QUIT", clickQuit);
     this->buttons.push_back(quitButton);
 }
 

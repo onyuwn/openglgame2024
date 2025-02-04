@@ -168,7 +168,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     this->player->addToWorld(this->world);
     progressCallback(.1f, "initializing player...");
 
-    this->playerPosTxt = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 48);
+    this->playerPosTxt = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 48, 400, 10);
     this->ui.addTextElement(this->playerPosTxt.get());
 
     this->initialized = true;

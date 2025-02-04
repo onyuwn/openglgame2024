@@ -128,7 +128,6 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
     }
 
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE && clickRequested) {
-        std::cout << "CLICK: " << xPos << ", " << (yPos - 600) * -1 <<std::endl;
         this->uiCallback.checkClick(xPos, (yPos - 600) * -1);
         clickRequested = false;
     }
@@ -239,7 +238,6 @@ void Player::interact(float curTime) {
             this->animator->playAnimation(curAnim);
             playingAnim = true;
             animStart = curTime;
-            printf("animstart: %f", curTime);
             if(interactionType == DIALOGUE) {
                 // if interaction returns something....
                 std::string dialogLine = hitObject->getDialogueLine();
@@ -259,7 +257,6 @@ void Player::interact(float curTime) {
             } else if(interactionType == THROW_ITEM) {
                 hitObject->applyForce(getPlayerHandPos()); // need to reactivate the rigid body of the interactive entity
             } else if(interactionType == TOGGLE) {
-                std::cout << "TOGGLE REQUESTED" << std::endl;
                 hitObject->toggleState();
             }
         } else {

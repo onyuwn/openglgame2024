@@ -9,8 +9,8 @@ UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) {
 
 void UIMaster::render(float deltaTime, float curTime) {
     //iterate over elements and render
-    for(int i = 0; i < this->textElements.size(); i++) {
-        this->textElements[i]->render(this->scrWidth / 2, this->scrHeight / 2, 1, glm::vec3(1.0, 0.0, 0.0), curTime);
+    for(int i = 0; i < this->textElements.size(); i++) { // TODO: store text element pos in members
+        this->textElements[i]->render(1, glm::vec3(1.0, 0.0, 0.0), curTime);
     }
     // finally show any urgent dialog:
     if(this->dialogShowing) {
@@ -55,9 +55,7 @@ void UIMaster::clearDialog() { // add callback to here to reset dialog showing
 void UIMaster::checkClick(double mouseX, double mouseY) { // get visible panel or iterate over all lol
     for(int i = 0; i < this->pauseMenuPanel->buttons.size(); i++) {
         glm::vec2 buttonPos = this->pauseMenuPanel->buttons[i]->getPos();
-        std::cout << "BUTTON POS " << buttonPos.x << ", " << buttonPos.y << std::endl;
         glm::vec2 buttonSize = this->pauseMenuPanel->buttons[i]->getDims();
-        std::cout << "BUTTON SIZE " << buttonSize.x << ", " << buttonSize.y << std::endl;
         if(mouseX > buttonPos.x && mouseX < buttonPos.x + buttonSize.x && mouseY > buttonPos.y && mouseY < buttonPos.y + buttonSize.y) {
             this->pauseMenuPanel->buttons[i]->click();
         }

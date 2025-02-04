@@ -4,7 +4,7 @@ DialogueElement::DialogueElement() {
     this->lineIdx = 0;
     this->showing = false;
     this->dialogBox = std::make_shared<UISpriteAnim>("resources/crumpleanim/crumplesheet.png", 360, 202, 220, 10);
-    this->textElement = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 16);
+    this->textElement = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 16, 225, 15);
 }
 
 void DialogueElement::activate() {
@@ -18,7 +18,8 @@ void DialogueElement::render(float x, float y, float scale, glm::vec3 color, flo
     if(showing) {
         if(!closing) {
             this->dialogBox->render(deltaTime, ONCE_STOP);
-            this->textElement->render(this->dialogBox->getPos().x + padding.x, (this->dialogBox->getPos().y + this->dialogBox->getDims().y) - padding.y, scale, color, curTime);
+            this->textElement->setPos(glm::vec2(this->dialogBox->getPos().x + padding.x, (this->dialogBox->getPos().y + this->dialogBox->getDims().y) - padding.y));
+            this->textElement->render(scale, color, curTime);
         } else {
             this->dialogBox->render(deltaTime, REVERSE_DONE);
             if(this->dialogBox->animComplete()) {

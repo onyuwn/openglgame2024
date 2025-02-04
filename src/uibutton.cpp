@@ -3,7 +3,7 @@
 UIButton::UIButton(int width, int height, int xPos, int yPos, float windowWidth, float windowHeight, glm::vec4 backgroundColor, std::string buttonText, void(*clickEvent)())
     : width(width), height(height), xPos(xPos), yPos(yPos), windowWidth(windowWidth), windowHeight(windowHeight), backgroundColor(backgroundColor), buttonText(buttonText), click(clickEvent),
       hovering(false), hoverStarted(false), hoverStartTime(0) {
-        this->buttonTextElement = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", buttonText, 48);
+        this->buttonTextElement = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", buttonText, 48, 200, 100);
         init(width, height, xPos, yPos, windowWidth, windowHeight);
 }
 
@@ -46,7 +46,6 @@ void UIButton::render(float deltaTime, float curTime) {
     if(hovering && !hoverStarted) {
         hoverStarted = true;
         hoverStartTime = curTime;
-        std::cout << "HOVER STARTED" << std::endl;
     } else if(!hovering) {
         hoverStartTime = 0;
         hoverStarted = false;
@@ -55,7 +54,6 @@ void UIButton::render(float deltaTime, float curTime) {
     this->buttonShader->setMat4("projection", glm::ortho(0.0f, 800.0f, 0.0f, 600.0f));
     this->buttonShader->setVec4("inColor", this->backgroundColor);
     if(this->hoverStartTime > 0) {
-        std::cout << "HOVER TIME " << curTime - this->hoverStartTime << std::endl;
         this->buttonShader->setFloat("dHoverTime", curTime - this->hoverStartTime);
     } else {
         this->buttonShader->setFloat("dHoverTime", 0);
@@ -63,7 +61,8 @@ void UIButton::render(float deltaTime, float curTime) {
     this->buttonShader->setFloat("animTime", .25);
     uiMesh->draw(*buttonShader); // also subtract width of total text
     glm::vec2 textDims = this->buttonTextElement->getDims();
-    this->buttonTextElement->render((this->xPos + (this->width / 2)) - (textDims.x / 4), (this->yPos + (this->height / 2) + (textDims.y / 8)), 1, glm::vec3(0, 1.0, 0), curTime);
+    this->buttonTextElement->setPos(glm::vec2((this->xPos + (this->width / 2)) - (textDims.x / 4), this->yPos + (this->height / 2))); 
+    this->buttonTextElement->render(1, glm::vec3(0, 1.0, 0), curTime);
 }
 
 glm::vec2 UIButton::getPos() {
