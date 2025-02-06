@@ -38,6 +38,7 @@ void UISpriteAnim::initialize() {
     };
 
     int nChannels;
+    std::cout << "loading sprite anim: " << textureAtlasPath << std::endl;
     unsigned char *data = stbi_load(textureAtlasPath.c_str(), &atlasWidth, &atlasHeight, &nChannels, 0);
 
     if(data) {
@@ -53,7 +54,8 @@ void UISpriteAnim::initialize() {
         stbi_image_free(data);
         rows = atlasHeight / frameHeight;
         columns = atlasWidth / frameWidth;
-
+        std::cout << "ROWS: " << rows << " COLUMNS " << columns << std::endl;
+        std::cout << "fWIDTH: " << atlasWidth << " fHEIGHT " << atlasHeight << std::endl;
         Shader uiShader("src/shaders/uitextureelement.vs", "src/shaders/uispriteanim.fs");
         this->uiShader = uiShader;
         this->uiMesh = UIMesh(vertices, uvs);
@@ -65,24 +67,33 @@ void UISpriteAnim::initialize() {
     }
 }
 
-void UISpriteAnim::render(float deltaTime) {
+void UISpriteAnim::render(float deltaTime, SpriteAnimationType animationType) {
     this->uiShader.use();
+    curAnimType = animationType;
     if(this->initialized) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureAtlasID);
         uiShader.setInt("uiTex", 0);
-        //std::cout << "CUR FRAME: " << curFrame << std::endl;
         if(timeSinceLastFrame2 >= timePerFrame2) {
             timeSinceLastFrame2 = 0;
-            curFrame++;
+            if(curFrame < (columns*rows) && animationType == LOOP) {
+                curFrame++;
+            } else if(curFrame < (columns*rows) - 1 && animationType == ONCE_STOP) {
+                curFrame++;
+            } else if(curFrame > 0 && animationType == REVERSE_DONE) {
+                curFrame--;
+            }
             int curRow = curFrame / columns;
             int curCol = curFrame - (columns * curRow);
+            std::cout << "curFrame: " << curFrame << std::endl;
             this->uiShader.setVec2("atlasSize", glm::vec2(atlasWidth, atlasHeight));
             this->uiShader.setVec2("frameSize", glm::vec2(frameWidth, frameHeight));
             this->uiShader.setInt("curRow", curRow);
             this->uiShader.setInt("curCol", curCol);
-            if(curFrame >= (columns*rows)) {
+            if(curFrame >= (columns*rows) && animationType == LOOP) {
                 curFrame = 0;
+            } else if(curFrame >= (columns*rows) && animationType == ONCE_STOP) {
+                curFrame = (columns*rows) - 1;
             }
         }
         uiShader.setMat4("projection", glm::ortho(0.0f, 800.0f, 0.0f, 600.0f));
@@ -92,3 +103,20 @@ void UISpriteAnim::render(float deltaTime) {
     }
 }
 
+glm::vec2 UISpriteAnim::getPos() {
+    return glm::vec2(xPos, yPos);
+}
+
+glm::vec2 UISpriteAnim::getDims() {
+    return glm::vec2(frameWidth, frameHeight);
+}
+
+bool UISpriteAnim::animComplete() {
+    if(curAnimType == ONCE_STOP && curFrame == (columns*rows)) {
+        return true;
+    } else if (curAnimType == REVERSE_DONE && curFrame <= 0) {
+        return true;
+    } else {
+        return false;
+    }
+}

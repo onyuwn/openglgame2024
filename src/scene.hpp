@@ -34,6 +34,7 @@ class Scene {
         std::shared_ptr<Terrain> terrain;
         std::function<void(std::string)> changeSceneCallback;
         bool initialized;
+        bool paused;
 };
 
 #endif

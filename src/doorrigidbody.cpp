@@ -79,8 +79,9 @@ void DoorRigidBody::toggleDoor() {
     this->rotating = true;
 }
 
-void DoorRigidBody::render(Shader &shader, float deltaTime) {
+void DoorRigidBody::render(Shader &shader, float deltaTime, bool selected) {
     shader.use();
+    shader.setBool("selected", selected);
     glm::mat4 modelRotationMatrix = glm::translate(glm::mat4(1.0f), this->doorPos);
     if (rotating) {
         // Calculate direction (1 for opening, -1 for closing)
@@ -170,6 +171,11 @@ void DoorRigidBody::render(Shader &shader, float deltaTime) {
         this->doorRigidBody->setWorldTransform(currentTransform);
     }
     modelRotationMatrix *= glm::rotate(glm::mat4(1.0f), glm::radians(doorAngle), rotAxis);
+    this->finalDoorModelMatrix = modelRotationMatrix;
     shader.setMat4("model", modelRotationMatrix);
     this->doorModel.draw(shader);
+}
+
+glm::mat4 DoorRigidBody::getDoorModelMatrix() {
+    return finalDoorModelMatrix;
 }

@@ -1,9 +1,12 @@
 #include "uitextelement.hpp"
 
-UITextElement::UITextElement(std::string fontPath, std::string text, int fontSize) : textShader(textShader) {
+UITextElement::UITextElement(std::string fontPath, std::string text, int fontSize, int xPos, int yPos)
+     : textShader(textShader), x(xPos), y(yPos) {
     this->fontPath = fontPath;
     this->text = text;
     this->fontSize = fontSize;
+    this->x = xPos;
+    this->y = yPos;
     initText();
 }
 
@@ -54,6 +57,7 @@ void UITextElement::initText() {
             glm::ivec2(this->fontFace->glyph->bitmap_left, this->fontFace->glyph->bitmap_top),
             static_cast<unsigned int>(this->fontFace->glyph->advance.x)
         };
+
         Characters.insert(std::pair<char, Character>(c, character));
     }
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -78,7 +82,7 @@ void UITextElement::setText(std::string text) {
     this->text = text;
 }
 
-void UITextElement::render(float x, float y, float scale, glm::vec3 color, float curTime) {
+void UITextElement::render(float scale, glm::vec3 color, float curTime) {
     glClear(GL_DEPTH_BUFFER_BIT); // Clears only the depth buffer otherwise skybox gets fucked up
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -94,16 +98,17 @@ void UITextElement::render(float x, float y, float scale, glm::vec3 color, float
     std::string::const_iterator c;
     unsigned int newlineCount = 1;
     int initialX = x;
+
     for(c = this->text.begin(); c != this->text.end(); c++) {
         Character ch = Characters[*c];
 
         if(*c == '\n') { 
-            x = initialX;
+            this->x = initialX;
             newlineCount++;
         }
 
-        float xpos = x + ch.Bearing.x * scale;
-        float ypos = y - ((ch.Size.y * newlineCount) - ch.Bearing.y) * scale;
+        float xpos = this->x + ch.Bearing.x * scale;
+        float ypos = this->y - ((ch.Size.y * newlineCount) - ch.Bearing.y) * scale;
 
         float w = ch.Size.x * scale;
         float h = ch.Size.y * scale;
@@ -125,11 +130,36 @@ void UITextElement::render(float x, float y, float scale, glm::vec3 color, float
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        x+=(ch.Advance >> 6) * scale;
+        this->x += (ch.Advance >> 6) * scale;
     }
+
+    this->x = initialX;
 
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
+}
+
+glm::vec2 UITextElement::getDims() {
+    int totalWidth = 0;
+    int totalHeight = 0;
+    std::string::const_iterator c;
+
+    for(c = this->text.begin(); c != this->text.end(); c++) {
+        Character ch = Characters[*c];
+        totalWidth+=ch.Size.x;
+        totalHeight+=ch.Size.y;
+    }
+
+    return glm::vec2(totalWidth, totalHeight);
+}
+
+glm::vec2 UITextElement::getPos() {
+    return glm::vec2(this->x, this->y);
+}
+
+void UITextElement::setPos(glm::vec2 newPos) {
+    this->x = newPos.x;
+    this->y = newPos.y;
 }

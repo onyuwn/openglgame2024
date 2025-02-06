@@ -7,29 +7,30 @@ MainScene::MainScene(std::string name, UIMaster &ui, Camera &camera, std::functi
 
 void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
     if(this->initialized && this->player->isAlive()) {
-        this->world->stepSimulation(deltaTime, 7);
-        this->player->UpdatePlayer(curTime, deltaTime, window);
+        this->world->stepSimulation(deltaTime * 3.0f, 7);
+        this->player->UpdatePlayer(curTime, deltaTime, window, paused);
         this->animator->updateAnimation(deltaTime);
         glm::vec3 playerPos = this->player->getPlayerPos();
         std::stringstream ppStream;
         ppStream << playerPos.x << ", " << playerPos.y << ", " << playerPos.z;
+        this->playerPosTxt->setPos(glm::vec2(800 - (this->playerPosTxt->getDims().x), 570));
         this->playerPosTxt->setText(ppStream.str());
 
+        this->camera.controlsDisabled = this->player->isControlDisabled();
+        this->ui.gamePaused = paused;
+
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos() + glm::vec3(0,1,0));
+        glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos());
         //glm::mat4 view = camera.GetViewMatrix(glm::vec3(0,0,0));
 
         this->basicShader->use();
         basicShader->setMat4("projection", projection);
         basicShader->setMat4("view", view);
-
-        for(int i = 0; i < this->gameObjects.size(); i++) {
-            this->gameObjects[i]->render(deltaTime);
-        }
         glm::mat4 model = glm::mat4(1.0f);
+
         basicShader->setMat4("model", model);
         this->kitchenItemsModel->draw(*this->basicShader);
 
@@ -39,7 +40,7 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         this->bonesShader->use();
         bonesShader->setMat4("projection", projection);
         bonesShader->setMat4("view", view);
-        model = glm::translate(model, glm::vec3(3, 0, 20));
+        model = glm::translate(model, glm::vec3(-.25, 0, 12));
         bonesShader->setMat4("model", model);
         for (int i = 0; i < transforms.size(); ++i) {
             this->bonesShader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
@@ -48,7 +49,17 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 
         this->player->render(curTime, deltaTime);
         this->basicShader->use();
+        this->restaurantItemsModel->draw(*this->basicShader);
+        this->officeItemsModel->draw(*this->basicShader);
         this->terrain->render(*this->basicShader);
+        this->desertTerrain->render(*this->basicShader);
+        this->officeTerrain->render(*this->basicShader);
+        this->restaurantTerrain->render(*this->basicShader);
+
+        for(int i = 0; i < this->gameObjects.size(); i++) {
+            this->gameObjects[i]->render(deltaTime, model, view, projection, curTime);
+        }
+
         this->skybox->render(glm::mat4(glm::mat3(view)), projection);
 
         if(this->physDebugOn) {
@@ -78,7 +89,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
         "resources/mainskybox/gradiesn.png",
     };
     this->skybox = std::make_shared<Skybox>(skyboxFaces);
-    progressCallback(.1f, "creating skybox");
+    progressCallback(.05f, "creating skybox");
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
     btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
     btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -89,7 +100,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
     world->setDebugDrawer(debugDrawer.get());
 
-    progressCallback(.1f, "initializing physics...");
+    progressCallback(.05f, "initializing physics...");
     stbi_set_flip_vertically_on_load(false);
     world->setGravity(btVector3(0,-9.81f,0));
 
@@ -98,14 +109,16 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     piggy->initialize();
     this->addGameObject(piggy);
     piggy->addToWorld(this->world);
-    progressCallback(.1f, "loading piggies...");
+    progressCallback(.05f, "loading piggies...");
+    progressCallback(.05f, "hi :_)...");
 
     this->trashModel = std::make_shared<Model>((char*)"resources/trash/trashbag.obj");
     std::shared_ptr<TrashBag> trashBag = std::make_shared<TrashBag>(*basicShader, *trashModel);
     trashBag->initialize();
     this->addGameObject(trashBag);
     trashBag->addToWorld(this->world);
-    progressCallback(.1f, "loading trash...");
+    progressCallback(.05f, "loading trash...");
+    progressCallback(.05f, "mygofd...");
 
     this->kitchenDoorModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchendoors1.obj");
     std::shared_ptr<Door> door = std::make_shared<Door>(*basicShader, *kitchenDoorModel, glm::vec3(8.7, 1.86, 10.42));
@@ -130,7 +143,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
 
     this->dumpsterLidDoorModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/dumpsterliddoor.obj");
     //std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 4.27, 10.632), 90, glm::vec3(-1, 0, 0));
-    std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 2.27, 20.632), 0, glm::vec3(-1, 0, 0), glm::vec3(0,1,0));
+    std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 4.27, 10.632), 0, glm::vec3(-1, 0, 0), glm::vec3(0,1,0));
     dumpsterLidDoor->initialize();
     this->addGameObject(dumpsterLidDoor);
     dumpsterLidDoor->addToWorld(world);
@@ -147,6 +160,12 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     terrain->addToWorld(world);
     progressCallback(.05f, "creating kitchen terrain...");
 
+    this->desertTerrainModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchendesertterrain.obj");
+    this->desertTerrain = std::make_shared<Terrain>(*desertTerrainModel);
+    desertTerrain->initTerrain();
+    desertTerrain->addToWorld(world);
+    progressCallback(.05f, "creating desert terrain...");
+
     this->carrotModel = std::make_shared<Model>((char*)"resources/characters/carrot4.gltf");
     this->testAnim = new Animation("resources/characters/carrot4.gltf", this->carrotModel.get());
     this->animator = std::make_shared<Animator>(testAnim);
@@ -156,8 +175,20 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     this->player->addToWorld(this->world);
     progressCallback(.1f, "initializing player...");
 
-    this->playerPosTxt = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 48);
+    this->playerPosTxt = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 24, 400, 10);
     this->ui.addTextElement(this->playerPosTxt.get());
+
+    this->restaurantModel = std::make_shared<Model>((char*)"resources/buildings/restaurant/restaurant.obj");
+    this->restaurantItemsModel = std::make_shared<Model>((char*)"resources/buildings/restaurant/restaurantitems.obj");
+    this->restaurantTerrain = std::make_shared<Terrain>(*this->restaurantModel);
+    this->restaurantTerrain->initTerrain();
+    this->restaurantTerrain->addToWorld(world);
+
+    this->officeModel = std::make_shared<Model>((char*)"resources/buildings/office/office.obj");
+    this->officeItemsModel = std::make_shared<Model>((char*)"resources/buildings/office/officeitems.obj");
+    this->officeTerrain = std::make_shared<Terrain>(*this->officeModel);
+    this->officeTerrain->initTerrain();
+    this->officeTerrain->addToWorld(world);
 
     this->initialized = true;
     std::cout << "DONE" << std::endl;

@@ -1,14 +1,15 @@
 #include "piggy.hpp"
 
 Piggy::Piggy(std::string name, Shader &shader, Model &piggyModel) : name(name), interacting(false), shader(shader),
-                                                 piggyRigidBody(piggyModel, btVector3(0, 2, 18), BOX, 10.0f) {
+                                                 piggyRigidBody(piggyModel, btVector3(2, 2, 25), BOX, 10.0f) {
     std::vector<std::string> linesTemp
     {
         "it's so\nover",
         "it never\nstarted",
         "I'll never be satisfied",
         "i can wait",
-        "it won't hit it hits\nit won't hit"
+        "it won't hit it hits\nit won't hit",
+        "\0"
     };
     this->lines = linesTemp;
     this->lineIdx = -1;
@@ -31,7 +32,7 @@ void Piggy::addToWorld(btDiscreteDynamicsWorld *world) {
     }
 }
 
-void Piggy::render(float deltaTime) {
+void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 projection, float curTime) {
     if(this->interacting) { // position override
         glm::vec3 direction = glm::normalize(this->positionCallback() - this->getPos());
         glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0), this->getPos());
@@ -82,5 +83,9 @@ void Piggy::toggleRigidBody() {
 }
 
 void Piggy::toggleState() {
+    
+}
+
+std::string Piggy::getHelpText() {
     
 }

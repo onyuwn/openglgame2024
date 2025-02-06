@@ -30,11 +30,15 @@ class MainScene : public Scene {
         //std::unique_ptr<btDiscreteDynamicsWorld> world;
         btDiscreteDynamicsWorld * world;
         std::shared_ptr<Terrain> terrain;
+        std::shared_ptr<Terrain> desertTerrain;
+        std::shared_ptr<Terrain> restaurantTerrain;
+        std::shared_ptr<Terrain> officeTerrain;
         std::shared_ptr<Shader> basicShader;
         std::shared_ptr<Shader> bonesShader;
         std::shared_ptr<Model> piggyModel;
         std::shared_ptr<Model> carrotModel;
         std::shared_ptr<Model> kitchenModel;
+        std::shared_ptr<Model> desertTerrainModel;
         std::shared_ptr<Model> kitchenItemsModel;
         std::shared_ptr<Model> kitchenDoorModel;
         std::shared_ptr<Model> kitchenDoorRModel;
@@ -44,6 +48,10 @@ class MainScene : public Scene {
         std::shared_ptr<Model> trashModel;
         std::shared_ptr<Model> arrowsModel;
         std::shared_ptr<Model> gModel;
+        std::shared_ptr<Model> restaurantModel;
+        std::shared_ptr<Model> restaurantItemsModel;
+        std::shared_ptr<Model> officeModel;
+        std::shared_ptr<Model> officeItemsModel;
         std::shared_ptr<UITextElement> playerPosTxt;
 
         Animation *testAnim;
@@ -57,6 +65,7 @@ class MainScene : public Scene {
         UIMaster &ui;
 
         bool initialized;
+        bool paused;
         bool physDebugOn;
 
         std::function<void(std::string)> changeSceneCallback;

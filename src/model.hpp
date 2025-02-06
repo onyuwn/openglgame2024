@@ -29,6 +29,7 @@ class Model
         Model(const Model& x);
         Model& operator=(const Model& x);
         void draw(Shader &shader, float curTime = 0.0f);
+        void drawOutline(Shader &shader, float curTime = 0.0f);
         Mesh getMesh();
         std::vector<Mesh> getMeshes();
         bool isLoaded();

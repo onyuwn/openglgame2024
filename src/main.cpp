@@ -98,11 +98,12 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS); 
+    glDepthFunc(GL_LESS);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     UIMaster ui(SCR_WIDTH, SCR_HEIGHT);
-    UITextElement *crosshair = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48);
-    UIElement statusBox(300, 40, 0, 0, SCR_WIDTH, SCR_HEIGHT);
+    UITextElement *crosshair = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48, 400, 300);
     ui.addTextElement(crosshair);
 
     float progress = 0.0f;
@@ -121,24 +122,26 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         if(initializingScene) {
-            curScene->initialize([&progress, &window, &progressBar1, &crosshair, &statusBox, &closeCallback, &loadingAnim](float newProgress, std::string curProcess) {
+            curScene->initialize([&progress, &window, &progressBar1, &crosshair, &closeCallback, &loadingAnim](float newProgress, std::string curProcess) {
                 float curTime = static_cast<float>(glfwGetTime());
                 deltaTime = curTime - lastFrame;
                 lastFrame = curTime;
                 glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                loadingAnim.render(deltaTime * 100);
+                loadingAnim.render(deltaTime);
                 progress += newProgress;
                 progressBar1.update(progress);
                 crosshair->setText("Please be patient with me...");
-                crosshair->render(150, (float)SCR_HEIGHT / 2, 1.0, glm::vec3(0.0, 1.0, 0.0), curTime);
-                statusBox.render(0, closeCallback, glm::vec4(1, 0, .816, 1.0));
+                crosshair->setPos(glm::vec2(400 - (crosshair->getDims().x / 2), 300));
+                crosshair->render(1.0, glm::vec3(0.0, 1.0, 0.0), curTime);
                 crosshair->setText(curProcess);
-                crosshair->render(30, 15, .5, glm::vec3(0.0, 1.0, 0.0), curTime);
+                crosshair->setPos(glm::vec2(10, 10));
+                crosshair->render(.5, glm::vec3(0.0, 1.0, 0.0), curTime);
                 glfwSwapBuffers(window);
                 glfwPollEvents();
             });
             crosshair->setText("x");
+            crosshair->setPos(glm::vec2(400 - (crosshair->getDims().x / 2), 300 - (crosshair->getDims().y / 2)));
             initializingScene = false;
         } else {
             float currentFrame = static_cast<float>(glfwGetTime());
