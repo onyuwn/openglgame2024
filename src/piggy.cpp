@@ -32,7 +32,7 @@ void Piggy::addToWorld(btDiscreteDynamicsWorld *world) {
     }
 }
 
-void Piggy::render(float deltaTime) {
+void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 projection, float curTime) {
     if(this->interacting) { // position override
         glm::vec3 direction = glm::normalize(this->positionCallback() - this->getPos());
         glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0), this->getPos());

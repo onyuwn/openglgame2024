@@ -1,14 +1,44 @@
 #include "door.hpp"
 
-Door::Door(Shader &shader, Model &doorModel, glm::vec3 doorPos, float initialRot, glm::vec3 rotAxis, glm::vec3 doorForward) : shader(shader),
+Door::Door(Shader &shader, Model &doorModel, glm::vec3 doorPos, float initialRot, glm::vec3 rotAxis, glm::vec3 doorForward) : shader(shader), doorModel(doorModel),
+                             doorForward(doorForward),
                              doorRigidBody(doorModel, doorPos, initialRot, rotAxis, doorForward),
                              initialized(false)
 {
     std::cout << "door" << std::endl;
+    this->outlineShader = new Shader("src/shaders/outline.vs", "src/shaders/outline.fs");
 }
 
-void Door::render(float deltaTime) {
+void Door::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 projection, float curTime) {
+    if(selected) {
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_STENCIL_TEST);
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glStencilMask(0x00);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+    }
     this->doorRigidBody.render(this->shader, deltaTime);
+    // render outline model here separately from rigid body?
+    if(selected) {
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        this->outlineShader->use();
+        glm::mat4 finalDoorMatrix = glm::scale(this->doorRigidBody.getDoorModelMatrix(), glm::vec3(1.05, 1.05, 1.05));
+        finalDoorMatrix = glm::translate(finalDoorMatrix, glm::vec3(doorForward.x *.1, 0, -doorForward.z * .1));
+        //glm::mat4 finalDoorMatrix = this->doorRigidBody.getDoorModelMatrix();
+        this->outlineShader->setMat4("model", finalDoorMatrix);
+        this->outlineShader->setMat4("view", view);
+        this->outlineShader->setMat4("projection", projection);
+        this->outlineShader->setFloat("curTime", curTime);
+        this->doorModel.drawOutline(*this->outlineShader);
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 0, 0xFF);
+        glEnable(GL_DEPTH_TEST);
+    }
+    selected = false;
 }
 
 void Door::initialize() {

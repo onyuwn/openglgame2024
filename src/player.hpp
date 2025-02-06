@@ -38,6 +38,7 @@ class Player { // todo: inherit rigid body entity
         bool isAlive();
         bool isControlDisabled();
         void render(float curTime, float deltaTime);
+        void pollInteractables();
     private:
         Camera &camera;
         btDiscreteDynamicsWorld *world;
@@ -56,6 +57,7 @@ class Player { // todo: inherit rigid body entity
         std::string playerModelPath;
         bool playingAnim;
         bool clickRequested;
+        bool pauseRequested;
         float animStart;
 };
 

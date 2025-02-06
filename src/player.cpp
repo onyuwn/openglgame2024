@@ -3,7 +3,8 @@
 Player::Player(Camera &camera, btDiscreteDynamicsWorld *world,
                UIMaster &uiCallback, bool &physDebugOn, std::string playerModelPath)
                 : camera(camera), uiCallback(uiCallback), physDebugOn(physDebugOn),
-                  playerModelPath(playerModelPath), animStart(0.0), curAnim(nullptr) {
+                  playerModelPath(playerModelPath), animStart(0.0), curAnim(nullptr),
+                  pauseRequested(false) {
     this->camera = camera;
     this->world = world;
         // build collision shape (box for rn)
@@ -24,7 +25,7 @@ void Player::initialize() {
     btDefaultMotionState* motionstate = new btDefaultMotionState(startTransform);
 
     btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(
-        10,
+        1,
         motionstate,
         this->playerCollisionShape,
         btVector3(0,0,0)
@@ -32,7 +33,7 @@ void Player::initialize() {
     this->playerRigidBody = new btRigidBody(rigidBodyCI);
     this->playerRigidBody->activate(true);
     this->playerRigidBody->setFriction(.5);
-    this->playerRigidBody->setDamping(0.6f, 0.9f);
+    this->playerRigidBody->setDamping(.5f, 2.0f);
     this->initialized=true;
 
     this->bonesShader = std::make_shared<Shader>("src/shaders/bones.vs", "src/shaders/basic.fs");
@@ -79,20 +80,25 @@ void Player::addToWorld(btDiscreteDynamicsWorld * world) {
 
 void Player::UpdatePlayer(float curTime, float deltaTime, GLFWwindow *window, bool &pauseCallback) {
     processInput(window, curTime, deltaTime, pauseCallback);
+    pollInteractables();
 }
 
 void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bool &pauseCallback)
 { // this should just apply force to the rigid body, translate view matrix with rigid body pos through getter method in the main loop
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && !controlsDisabled) {
-        // todo: release mouse, pause game, show menu UI
-        //glfwSetWindowShouldClose(window, true); 
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        pauseCallback = true;
-        controlsDisabled = true;
-    } else if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && controlsDisabled) {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        pauseCallback = false;
-        controlsDisabled = false;
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && !pauseRequested) {
+        pauseRequested = true;
+    }
+
+    if(pauseRequested && glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_RELEASE) {
+        pauseRequested = false;
+        pauseCallback = !pauseCallback;
+        controlsDisabled = !controlsDisabled;
+
+        if(pauseCallback) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  
+        } else {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
     }
 
     if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && !interactRequested) {
@@ -114,7 +120,7 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
     btVector3 curPos = curTransform.getOrigin();
     glm::vec3 cameraFrontNormal = glm::normalize(glm::vec3(this->camera.Front.x, 0, this->camera.Front.z));
     glm::vec3 cameraRightNormal = glm::normalize(glm::vec3(this->camera.Right.x, 0, this->camera.Right.z));
-    btVector3 btFront = btVector3(cameraFrontNormal.x, 0, cameraFrontNormal.z);
+    btVector3 btFront = btVector3(cameraFrontNormal.x, 0, cameraFrontNormal.z); // todo use y component if grounded?
     btVector3 btRight = btVector3(cameraRightNormal.x, 0, cameraRightNormal.z);
 
     btVector3 force(0, 0, 0);  // Reset force each frame
@@ -136,35 +142,35 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             this->playerRigidBody->setActivationState(1);
             this->playerRigidBody->activate(true);
-            force += btFront * velocity * 10000;
+            force += btFront * velocity * 50;
         }
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
             this->playerRigidBody->setActivationState(1);
             this->playerRigidBody->activate(true);
-            force += btFront * velocity * -10000;
+            force += btFront * velocity * -50;
         }
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
             this->playerRigidBody->setActivationState(1);
             this->playerRigidBody->activate(true);
-            force += btRight * velocity * -10000;
+            force += btRight * velocity * -50;
         }
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
             this->playerRigidBody->setActivationState(1);
             this->playerRigidBody->activate(true);
-            force += btRight * velocity * 10000;
+            force += btRight * velocity * 50;
         }
 
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && checkGrounded()) {
             this->playerRigidBody->setActivationState(1);
             this->playerRigidBody->activate(true);
-            force += btVector3(0, 1, 0) * velocity * 50000;
+            force += btVector3(0, 1, 0) * velocity * 2000;
         }
 
         // Apply force smoothly
         if (force.length() != 0 && checkGrounded()) {
             btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
             btVector3 clampedVelocity = currentVelocity;
-            float maxSpeed = 10.0f;  // Set the max horizontal speed
+            float maxSpeed = 100.0f;  // Set the max horizontal speed
             if (clampedVelocity.x() > maxSpeed) {
                 clampedVelocity.setX(maxSpeed);
             }
@@ -182,7 +188,7 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
             clampedVelocity.setY(currentVelocity.y());
 
             // Apply the clamped velocity back to the rigid body (only affects horizontal speed)
-            playerRigidBody->setLinearVelocity(clampedVelocity);
+            //playerRigidBody->setLinearVelocity(clampedVelocity);
             this->playerRigidBody->applyCentralForce(force);
         } else if(checkGrounded()) {
             btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
@@ -191,7 +197,7 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
         } else { // in the air
             btVector3 currentVelocity = playerRigidBody->getLinearVelocity();
             btVector3 clampedVelocity = currentVelocity;
-            float maxSpeed = 3.0f;  // Set the max horizontal speed
+            float maxSpeed = 50.0f;  // Set the max horizontal speed
             if (clampedVelocity.x() > maxSpeed) {
                 clampedVelocity.setX(maxSpeed);
             }
@@ -207,7 +213,6 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
 
             // Set the vertical velocity (y) without clamping it
             clampedVelocity.setY(currentVelocity.y());
-
             // Apply the clamped velocity back to the rigid body (only affects horizontal speed)
             playerRigidBody->setLinearVelocity(clampedVelocity);
             this->playerRigidBody->applyCentralForce(force);
@@ -217,7 +222,7 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
 
 bool Player::checkGrounded() {
     glm::vec3 outOrigin = getPlayerPos();
-    glm::vec3 outEnd = outOrigin + this->camera.WorldUp * -3.0f;
+    glm::vec3 outEnd = outOrigin + this->camera.WorldUp * -2.25f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
     world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
     return RayCallback.hasHit();
@@ -269,6 +274,21 @@ void Player::interact(float curTime) {
         // apply force
         this->heldItem = nullptr;
         itemInHand = false;
+    }
+}
+
+void Player::pollInteractables() {
+    glm::vec3 outOrigin = getPlayerPos();
+    glm::vec3 outEnd = outOrigin + this->camera.Front * 100.0f;
+    btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
+    world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
+    if(RayCallback.hasHit() && !itemInHand) {
+        // set gameobject as selected
+        GameObject* hitObject = (GameObject*)RayCallback.m_collisionObject->getUserPointer();
+        if(hitObject != nullptr) {
+            hitObject->selected = true;
+            // render help text to screen 
+        }
     }
 }
 

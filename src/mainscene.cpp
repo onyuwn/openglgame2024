@@ -7,7 +7,7 @@ MainScene::MainScene(std::string name, UIMaster &ui, Camera &camera, std::functi
 
 void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
     if(this->initialized && this->player->isAlive()) {
-        this->world->stepSimulation(deltaTime, 7);
+        this->world->stepSimulation(deltaTime * 3.0f, 7);
         this->player->UpdatePlayer(curTime, deltaTime, window, paused);
         this->animator->updateAnimation(deltaTime);
         glm::vec3 playerPos = this->player->getPlayerPos();
@@ -19,7 +19,7 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         this->ui.gamePaused = paused;
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos() + glm::vec3(0,1,0));
@@ -28,11 +28,8 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         this->basicShader->use();
         basicShader->setMat4("projection", projection);
         basicShader->setMat4("view", view);
-
-        for(int i = 0; i < this->gameObjects.size(); i++) {
-            this->gameObjects[i]->render(deltaTime);
-        }
         glm::mat4 model = glm::mat4(1.0f);
+
         basicShader->setMat4("model", model);
         this->kitchenItemsModel->draw(*this->basicShader);
 
@@ -51,8 +48,17 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 
         this->player->render(curTime, deltaTime);
         this->basicShader->use();
+        this->restaurantItemsModel->draw(*this->basicShader);
+        this->officeItemsModel->draw(*this->basicShader);
         this->terrain->render(*this->basicShader);
         this->desertTerrain->render(*this->basicShader);
+        this->officeTerrain->render(*this->basicShader);
+        this->restaurantTerrain->render(*this->basicShader);
+
+        for(int i = 0; i < this->gameObjects.size(); i++) {
+            this->gameObjects[i]->render(deltaTime, model, view, projection, curTime);
+        }
+
         this->skybox->render(glm::mat4(glm::mat3(view)), projection);
 
         if(this->physDebugOn) {
@@ -170,6 +176,18 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
 
     this->playerPosTxt = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 48, 400, 10);
     this->ui.addTextElement(this->playerPosTxt.get());
+
+    this->restaurantModel = std::make_shared<Model>((char*)"resources/buildings/restaurant/restaurant.obj");
+    this->restaurantItemsModel = std::make_shared<Model>((char*)"resources/buildings/restaurant/restaurantitems.obj");
+    this->restaurantTerrain = std::make_shared<Terrain>(*this->restaurantModel);
+    this->restaurantTerrain->initTerrain();
+    this->restaurantTerrain->addToWorld(world);
+
+    this->officeModel = std::make_shared<Model>((char*)"resources/buildings/office/office.obj");
+    this->officeItemsModel = std::make_shared<Model>((char*)"resources/buildings/office/officeitems.obj");
+    this->officeTerrain = std::make_shared<Terrain>(*this->officeModel);
+    this->officeTerrain->initTerrain();
+    this->officeTerrain->addToWorld(world);
 
     this->initialized = true;
     std::cout << "DONE" << std::endl;

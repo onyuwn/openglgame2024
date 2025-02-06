@@ -7,7 +7,6 @@ UITextElement::UITextElement(std::string fontPath, std::string text, int fontSiz
     this->fontSize = fontSize;
     this->x = xPos;
     this->y = yPos;
-    std::cout << "TEXTPOS: X: " << x << " Y: " << y << std::endl;
     initText();
 }
 
@@ -99,8 +98,6 @@ void UITextElement::render(float scale, glm::vec3 color, float curTime) {
     std::string::const_iterator c;
     unsigned int newlineCount = 1;
     int initialX = x;
-
-    std::cout << "RENDERING TeXT: " << this->text << " @ " << this->x << ", " << this->y << std::endl;
 
     for(c = this->text.begin(); c != this->text.end(); c++) {
         Character ch = Characters[*c];

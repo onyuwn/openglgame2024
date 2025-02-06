@@ -22,6 +22,7 @@ class RigidBodyEntity {
         void initialize(glm::mat4 model = glm::mat4(1.0));
         void addToWorld(btDynamicsWorld * world);
         glm::vec3 getPos();
+        glm::mat4 getFinalModelMatrix();
         void setPos(glm::vec3 newPos);
     private:
         CollisionShapeType collisionShapeType;
@@ -30,6 +31,7 @@ class RigidBodyEntity {
         btVector3 boundingBox;
         float mass;
         bool initialized;
+        glm::mat4 finalModelMatrix;
 };
 
 #endif

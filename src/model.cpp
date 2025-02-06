@@ -19,10 +19,31 @@ void Model::setVertexBoneDataToDefault(Vertex& vertex) {
 }
 
 void Model::draw(Shader &shader, float curTime) {
-
     for(unsigned int i = 0; i < meshes.size(); i++) {
         meshes[i].draw(shader);
     }
+}
+
+void Model::drawOutline(Shader &shader, float curTime) {
+    // glEnable(GL_STENCIL_TEST);
+    // glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    // glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    // glStencilMask(0xFF);
+
+    // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    // glStencilMask(0x00);
+    // glDisable(GL_DEPTH_TEST);
+
+    // todo draw outline again?
+    for(unsigned int i = 0; i < meshes.size(); i++) {
+        // TODO: model, view, proj matrices not making it in herre
+        meshes[i].draw(shader);
+    }
+
+    // glStencilMask(0xFF);
+    // glStencilFunc(GL_ALWAYS, 0, 0xFF);
+    // glDisable(GL_STENCIL_TEST);
+    // glEnable(GL_DEPTH_TEST);
 }
 
 std::vector<Mesh> meshes;

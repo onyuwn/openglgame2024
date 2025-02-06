@@ -31,6 +31,8 @@ class MainScene : public Scene {
         btDiscreteDynamicsWorld * world;
         std::shared_ptr<Terrain> terrain;
         std::shared_ptr<Terrain> desertTerrain;
+        std::shared_ptr<Terrain> restaurantTerrain;
+        std::shared_ptr<Terrain> officeTerrain;
         std::shared_ptr<Shader> basicShader;
         std::shared_ptr<Shader> bonesShader;
         std::shared_ptr<Model> piggyModel;
@@ -46,6 +48,10 @@ class MainScene : public Scene {
         std::shared_ptr<Model> trashModel;
         std::shared_ptr<Model> arrowsModel;
         std::shared_ptr<Model> gModel;
+        std::shared_ptr<Model> restaurantModel;
+        std::shared_ptr<Model> restaurantItemsModel;
+        std::shared_ptr<Model> officeModel;
+        std::shared_ptr<Model> officeItemsModel;
         std::shared_ptr<UITextElement> playerPosTxt;
 
         Animation *testAnim;

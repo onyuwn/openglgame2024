@@ -18,9 +18,10 @@ class DoorRigidBody {
         DoorRigidBody(Model &doorModel, glm::vec3 doorPos, float initialRot = 0, glm::vec3 rotAxis = glm::vec3(0, 1.0, 0), glm::vec3 doorForward = glm::vec3(-1, 0, 0));
         ~DoorRigidBody();
         void initialize();
-        void render(Shader &shader, float deltaTime);
+        void render(Shader &shader, float deltaTime, bool selected = false);
         void addToWorld(btDynamicsWorld * world);
         void toggleDoor();
+        glm::mat4 getDoorModelMatrix();
         btRigidBody *doorRigidBody;
     private:
         Model &doorModel;
@@ -36,6 +37,7 @@ class DoorRigidBody {
         float initialRot;
         glm::vec3 rotAxis;
         glm::vec3 doorForward;
+        glm::mat4 finalDoorModelMatrix;
 };
 
 #endif

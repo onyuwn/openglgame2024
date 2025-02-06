@@ -98,7 +98,7 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS); 
+    glDepthFunc(GL_LESS);
 
     UIMaster ui(SCR_WIDTH, SCR_HEIGHT);
     UITextElement *crosshair = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48, 400, 300);

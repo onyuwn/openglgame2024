@@ -1,9 +1,11 @@
 #include "trashbag.hpp"
 
 TrashBag::TrashBag(Shader &shader, Model &trashBagModel) : shader(shader),
-                                     trashBagRigidBody(trashBagModel, btVector3(10,2,1)) {
+                                     trashBagRigidBody(trashBagModel, btVector3(10,2,1)),
+                                     trashBagModel(trashBagModel) {
     this->initialized = false;
     this->positionOverride = false;
+    this->outlineShader = new Shader("src/shaders/outline.vs", "src/shaders/outline.fs");
 }
 
 void TrashBag::initialize() {
@@ -18,7 +20,19 @@ void TrashBag::addToWorld(btDiscreteDynamicsWorld *world) {
     }
 }
 
-void TrashBag::render(float deltaTime) {
+void TrashBag::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 projection, float curTime) {
+    if(selected) {
+        std::cout << "trash selected" << std::endl;
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_STENCIL_TEST);
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glStencilMask(0x00);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+    }
+
     if(this->positionOverride) {
         glm::mat4 model = glm::translate(glm::mat4(1.0), this->positionCallback());
         model = glm::scale(model, glm::vec3(.5,.5,.5));
@@ -26,6 +40,23 @@ void TrashBag::render(float deltaTime) {
     } else {
         this->trashBagRigidBody.render(this->shader);
     }
+
+    if(selected && !this->positionOverride) {
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        this->outlineShader->use();
+        glm::mat4 finalTrashBagModelMatrix = glm::scale(this->trashBagRigidBody.getFinalModelMatrix(), glm::vec3(1.05, 1.05, 1.1));
+        //glm::mat4 finalDoorMatrix = this->doorRigidBody.getDoorModelMatrix();
+        this->outlineShader->setMat4("model", finalTrashBagModelMatrix);
+        this->outlineShader->setMat4("view", view);
+        this->outlineShader->setMat4("projection", projection);
+        this->outlineShader->setFloat("curTime", curTime);
+        this->trashBagModel.drawOutline(*this->outlineShader);
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 0, 0xFF);
+        glEnable(GL_DEPTH_TEST);
+    }
+    selected = false;
 }
 
 std::string TrashBag::getDialogueLine() {

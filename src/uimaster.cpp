@@ -4,7 +4,7 @@ UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) {
     this->scrWidth = scrWidth;
     this->scrHeight = scrHeight;
     //this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, glm::vec4(1.0,0.0,0.0,.5));
-    this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, "resources/ui/uipanel4.png");
+    this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, "resources/ui/uipanel5.png");
 }
 
 void UIMaster::render(float deltaTime, float curTime) {

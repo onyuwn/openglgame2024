@@ -121,9 +121,14 @@ void RigidBodyEntity::render(Shader &shader, glm::mat4 model, bool positionOverr
         // Convert glm::quat to glm::mat4 (rotation matrix)
         glm::mat4 rotationMatrix = glm::toMat4(glmRot);
         model = model * rotationMatrix;
+        finalModelMatrix = model;
     }
     shader.setMat4("model", model);
     this->entityModel.draw(shader);
+}
+
+glm::mat4 RigidBodyEntity::getFinalModelMatrix() {
+    return finalModelMatrix;
 }
 
 void RigidBodyEntity::activateInteraction() {
