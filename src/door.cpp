@@ -23,20 +23,26 @@ void Door::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 pr
     this->doorRigidBody.render(this->shader, deltaTime);
     // render outline model here separately from rigid body?
     if(selected) {
+        glEnable(GL_CULL_FACE);
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00);
+        //glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         this->outlineShader->use();
         glm::mat4 finalDoorMatrix = glm::scale(this->doorRigidBody.getDoorModelMatrix(), glm::vec3(1.05, 1.05, 1.05));
-        finalDoorMatrix = glm::translate(finalDoorMatrix, glm::vec3(doorForward.x *.1, 0, -doorForward.z * .1));
+        finalDoorMatrix = glm::translate(finalDoorMatrix, glm::vec3(-doorForward.x *.1, 0, -doorForward.z * .1));
         //glm::mat4 finalDoorMatrix = this->doorRigidBody.getDoorModelMatrix();
         this->outlineShader->setMat4("model", finalDoorMatrix);
         this->outlineShader->setMat4("view", view);
         this->outlineShader->setMat4("projection", projection);
         this->outlineShader->setFloat("curTime", curTime);
         this->doorModel.drawOutline(*this->outlineShader);
+        glDisable(GL_BLEND);
         glStencilMask(0xFF);
         glStencilFunc(GL_ALWAYS, 0, 0xFF);
         glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);  
     }
     selected = false;
 }
@@ -52,6 +58,10 @@ GameObjectInteractionType Door::getInteraction() {
 
 std::string Door::getDialogueLine() {
     return "";
+}
+
+std::string Door::getHelpText() {
+    return "open";
 }
 
 void Door::setPos(std::function<glm::vec3()> posCallback) { }

@@ -13,6 +13,7 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         glm::vec3 playerPos = this->player->getPlayerPos();
         std::stringstream ppStream;
         ppStream << playerPos.x << ", " << playerPos.y << ", " << playerPos.z;
+        this->playerPosTxt->setPos(glm::vec2(800 - (this->playerPosTxt->getDims().x), 570));
         this->playerPosTxt->setText(ppStream.str());
 
         this->camera.controlsDisabled = this->player->isControlDisabled();
@@ -22,7 +23,7 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos() + glm::vec3(0,1,0));
+        glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos());
         //glm::mat4 view = camera.GetViewMatrix(glm::vec3(0,0,0));
 
         this->basicShader->use();
@@ -39,7 +40,7 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         this->bonesShader->use();
         bonesShader->setMat4("projection", projection);
         bonesShader->setMat4("view", view);
-        model = glm::translate(model, glm::vec3(3, 0, 20));
+        model = glm::translate(model, glm::vec3(-.25, 0, 12));
         bonesShader->setMat4("model", model);
         for (int i = 0; i < transforms.size(); ++i) {
             this->bonesShader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
@@ -142,7 +143,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
 
     this->dumpsterLidDoorModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/dumpsterliddoor.obj");
     //std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 4.27, 10.632), 90, glm::vec3(-1, 0, 0));
-    std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 2.27, 20.632), 0, glm::vec3(-1, 0, 0), glm::vec3(0,1,0));
+    std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 4.27, 10.632), 0, glm::vec3(-1, 0, 0), glm::vec3(0,1,0));
     dumpsterLidDoor->initialize();
     this->addGameObject(dumpsterLidDoor);
     dumpsterLidDoor->addToWorld(world);
@@ -174,7 +175,7 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     this->player->addToWorld(this->world);
     progressCallback(.1f, "initializing player...");
 
-    this->playerPosTxt = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 48, 400, 10);
+    this->playerPosTxt = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 24, 400, 10);
     this->ui.addTextElement(this->playerPosTxt.get());
 
     this->restaurantModel = std::make_shared<Model>((char*)"resources/buildings/restaurant/restaurant.obj");

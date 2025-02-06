@@ -22,6 +22,7 @@ class Door : public GameObject { // use hinge constraint
         void toggleHinge(float deltaTime, float curTime);
         void addToWorld(btDynamicsWorld * world);
         void toggleState() override;
+        std::string getHelpText() override;
     private:
         Shader &shader;
         Shader *outlineShader;

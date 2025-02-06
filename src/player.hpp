@@ -59,6 +59,7 @@ class Player { // todo: inherit rigid body entity
         bool clickRequested;
         bool pauseRequested;
         float animStart;
+        float playerHeight = 1.0;
 };
 
 #endif

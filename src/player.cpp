@@ -56,12 +56,12 @@ void Player::render(float curTime, float deltaTime) {
         this->animator->playAnimation(curAnim);
         this->animator->updateAnimation(deltaTime);
     }
-    glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos() + glm::vec3(0,.75,-.1));
+    glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos() - glm::vec3(0, .25, 0)); // ARM ADJUST
     model = glm::scale(model, glm::vec3(.25, .25, .25));
     model *= glm::mat4(getPlayerRotationMatrix());
 
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
-    glm::mat4 view = camera.GetViewMatrix(getPlayerPos() + glm::vec3(0,1,0));
+    glm::mat4 view = camera.GetViewMatrix(getPlayerPos());
 
     auto transforms = this->animator->getFinalBoneMatrices();
     this->bonesShader->use();
@@ -222,7 +222,7 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
 
 bool Player::checkGrounded() {
     glm::vec3 outOrigin = getPlayerPos();
-    glm::vec3 outEnd = outOrigin + this->camera.WorldUp * -2.25f;
+    glm::vec3 outEnd = outOrigin + this->camera.WorldUp * (-2.25f - playerHeight);
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
     world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
     return RayCallback.hasHit();
@@ -296,7 +296,7 @@ glm::vec3 Player::getPlayerPos() {
     btTransform curTransform = this->playerRigidBody->getWorldTransform();
     btVector3 curPos = curTransform.getOrigin();
     //btQuaternion curRot = curTransform.getRotation();
-    return glm::vec3(curPos.x(), curPos.y(), curPos.z());
+    return glm::vec3(curPos.x(), curPos.y() + playerHeight, curPos.z());
 }
 
 glm::vec3 Player::getPlayerHandPos() {

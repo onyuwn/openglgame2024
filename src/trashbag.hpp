@@ -20,6 +20,7 @@ class TrashBag : public GameObject {
         void applyForce(glm::vec3 force) override;
         void toggleRigidBody() override;
         void toggleState() override;
+        std::string getHelpText() override;
         RigidBodyEntity trashBagRigidBody;
     private:
         Shader &shader;

@@ -42,10 +42,11 @@ void TrashBag::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat
     }
 
     if(selected && !this->positionOverride) {
+        glEnable(GL_CULL_FACE);
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00);
         this->outlineShader->use();
-        glm::mat4 finalTrashBagModelMatrix = glm::scale(this->trashBagRigidBody.getFinalModelMatrix(), glm::vec3(1.05, 1.05, 1.1));
+        glm::mat4 finalTrashBagModelMatrix = glm::scale(this->trashBagRigidBody.getFinalModelMatrix(), glm::vec3(1.15, 1.15, 1.15));
         //glm::mat4 finalDoorMatrix = this->doorRigidBody.getDoorModelMatrix();
         this->outlineShader->setMat4("model", finalTrashBagModelMatrix);
         this->outlineShader->setMat4("view", view);
@@ -55,6 +56,7 @@ void TrashBag::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat
         glStencilMask(0xFF);
         glStencilFunc(GL_ALWAYS, 0, 0xFF);
         glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
     }
     selected = false;
 }
@@ -99,3 +101,7 @@ void TrashBag::toggleRigidBody() {
 }
 
 void TrashBag::toggleState() {}
+
+std::string TrashBag::getHelpText() {
+
+}

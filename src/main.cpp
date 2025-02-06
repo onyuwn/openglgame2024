@@ -99,6 +99,8 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     UIMaster ui(SCR_WIDTH, SCR_HEIGHT);
     UITextElement *crosshair = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48, 400, 300);
@@ -139,7 +141,7 @@ int main()
                 glfwPollEvents();
             });
             crosshair->setText("x");
-            crosshair->setPos(glm::vec2(400 - (crosshair->getDims().x / 2), 300 + (crosshair->getDims().y / 2)));
+            crosshair->setPos(glm::vec2(400 - (crosshair->getDims().x / 2), 300 - (crosshair->getDims().y / 2)));
             initializingScene = false;
         } else {
             float currentFrame = static_cast<float>(glfwGetTime());

@@ -17,6 +17,7 @@ class GameObject {
         virtual void applyForce(glm::vec3 force) = 0;
         virtual void toggleRigidBody() = 0;
         virtual void toggleState() = 0; // door
+        virtual std::string getHelpText() = 0;
         bool selected = false;
 };
 

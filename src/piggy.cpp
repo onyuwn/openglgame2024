@@ -1,7 +1,7 @@
 #include "piggy.hpp"
 
 Piggy::Piggy(std::string name, Shader &shader, Model &piggyModel) : name(name), interacting(false), shader(shader),
-                                                 piggyRigidBody(piggyModel, btVector3(0, 2, 18), BOX, 10.0f) {
+                                                 piggyRigidBody(piggyModel, btVector3(2, 2, 25), BOX, 10.0f) {
     std::vector<std::string> linesTemp
     {
         "it's so\nover",
@@ -83,5 +83,9 @@ void Piggy::toggleRigidBody() {
 }
 
 void Piggy::toggleState() {
+    
+}
+
+std::string Piggy::getHelpText() {
     
 }

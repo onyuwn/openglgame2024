@@ -32,6 +32,7 @@ class Piggy : public GameObject {
         void applyForce(glm::vec3 force) override;
         void toggleRigidBody() override;
         void toggleState() override;
+        std::string getHelpText() override;
     private:
         std::function<glm::vec3()> positionCallback;
 };
