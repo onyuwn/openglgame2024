@@ -7,6 +7,11 @@ MainScene::MainScene(std::string name, UIMaster &ui, Camera &camera, std::functi
 
 void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
     if(this->initialized && this->player->isAlive()) {
+        this->postProcessor->begin();
+
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        
         this->world->stepSimulation(deltaTime * 3.0f, 7);
         this->player->UpdatePlayer(curTime, deltaTime, window, paused);
         this->animator->updateAnimation(deltaTime);
@@ -18,9 +23,6 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 
         this->camera.controlsDisabled = this->player->isControlDisabled();
         this->ui.gamePaused = paused;
-
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos());
@@ -66,6 +68,8 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
             debugDrawer->SetMatrices(view, projection);
             world->debugDrawWorld();
         }
+        this->postProcessor->render();
+
         this->ui.render(deltaTime, curTime);
 
         glfwSwapBuffers(window);
@@ -95,6 +99,8 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
     btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
     this->world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+
+    this->postProcessor = std::make_shared<PostProcessor>();
 
     this->debugDrawer = std::make_shared<DebugDrawer>();
     debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);

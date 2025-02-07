@@ -12,6 +12,7 @@
 #include "debugdrawer.hpp"
 #include "animation.hpp"
 #include "animator.hpp"
+#include "postprocessor.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 
@@ -53,6 +54,8 @@ class MainScene : public Scene {
         std::shared_ptr<Model> officeModel;
         std::shared_ptr<Model> officeItemsModel;
         std::shared_ptr<UITextElement> playerPosTxt;
+
+        std::shared_ptr<PostProcessor> postProcessor;
 
         Animation *testAnim;
         std::shared_ptr<Animator> animator;
