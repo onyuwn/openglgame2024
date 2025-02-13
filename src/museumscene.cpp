@@ -7,11 +7,11 @@ MuseumScene::MuseumScene(std::string name, UIMaster &ui, Camera &camera) : initi
 
 void MuseumScene::render(float deltaTime, float curTime, GLFWwindow *window) {
     if(this->initialized) {
-        this->world->stepSimulation(deltaTime * 3.0f, 7);
-        this->player->UpdatePlayer(curTime, deltaTime, window, paused);
-
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        this->world->stepSimulation(deltaTime * 3.0f, 7);
+        this->player->UpdatePlayer(curTime, deltaTime, window, paused);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos() + glm::vec3(0,1,0));
@@ -52,6 +52,7 @@ void MuseumScene::initialize(std::function<void(float, std::string)> progressCal
     btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
     btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
     this->world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+    world->setGravity(btVector3(0,-9.81f,0));
 
     this->museumItemsModel = std::make_shared<Model>((char*)"resources/buildings/museum/museumitems1.obj");
     this->museumModel = std::make_shared<Model>((char*)"resources/buildings/museum/museum1.obj");

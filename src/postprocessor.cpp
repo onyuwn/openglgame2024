@@ -11,14 +11,14 @@ void PostProcessor::initialize() {
     // create a color attachment texture
     glGenTextures(1, &textureColorBuffer);
     glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1600, 1200, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); // TODO: idk why but need to set this to double screen dims lol
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
 
     glGenRenderbuffers(1, &renderBuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1600, 1200);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -43,6 +43,27 @@ void PostProcessor::initialize() {
     };
 
     this->quad = new UIMesh(vertices, uvs);
+    // float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+    //     // positions   // texCoords
+    //     -1.0f,  1.0f,  0.0f, 1.0f,
+    //     -1.0f, -1.0f,  0.0f, 0.0f,
+    //      1.0f, -1.0f,  1.0f, 0.0f,
+
+    //     -1.0f,  1.0f,  0.0f, 1.0f,
+    //      1.0f, -1.0f,  1.0f, 0.0f,
+    //      1.0f,  1.0f,  1.0f, 1.0f
+    // };
+
+    // glGenVertexArrays(1, &quadVAO);
+    // glGenBuffers(1, &quadVBO);
+    // glBindVertexArray(quadVAO);
+    // glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    // glEnableVertexAttribArray(0);
+    // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    // glEnableVertexAttribArray(1);
+    // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
     this->screenShader = new Shader("src/shaders/screenshader.vs", "src/shaders/screenshader.fs");
     this->screenShader->use();
     this->screenShader->setInt("screenTexture",0);
@@ -61,6 +82,8 @@ void PostProcessor::render() { // split up first and second render passes someho
     glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     this->screenShader->use();
+    //glBindVertexArray(quadVAO);
     glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
     this->quad->draw(*this->screenShader);
+    //glDrawArrays(GL_TRIANGLES, 0, 6);
 }

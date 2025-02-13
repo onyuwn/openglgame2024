@@ -16,6 +16,7 @@ class PostProcessor {
         bool initialized;
         UIMesh *quad;
         glm::vec2 screenSize();
+        unsigned int quadVAO, quadVBO;
         unsigned int frameBuffer;
         unsigned int textureColorBuffer;
         unsigned int renderBuffer;

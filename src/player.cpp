@@ -116,6 +116,10 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
 
     //this->playerRigidBody->activate(true);
     float velocity = (this->camera.MovementSpeed * deltaTime);
+    //std::cout << "VELOCITY: " << this->camera.MovementSpeed << " * " << deltaTime << " = " << velocity << std::endl;
+    if(velocity < .1) { // TODO: player movement is effected by game performance
+        velocity = .1;
+    }
     btTransform curTransform = this->playerRigidBody->getWorldTransform();
     btVector3 curPos = curTransform.getOrigin();
     glm::vec3 cameraFrontNormal = glm::normalize(glm::vec3(this->camera.Front.x, 0, this->camera.Front.z));

@@ -11,7 +11,7 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        
+
         this->world->stepSimulation(deltaTime * 3.0f, 7);
         this->player->UpdatePlayer(curTime, deltaTime, window, paused);
         this->animator->updateAnimation(deltaTime);
@@ -68,6 +68,9 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
             debugDrawer->SetMatrices(view, projection);
             world->debugDrawWorld();
         }
+
+        this->bossGuyBillboard->render(view, projection, this->camera.Up, this->camera.Right);
+
         this->postProcessor->render();
 
         this->ui.render(deltaTime, curTime);
@@ -131,21 +134,21 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     door->initialize();
     this->addGameObject(door);
     door->addToWorld(world);
-    progressCallback(.1f, "loading kitchen door...");
+    progressCallback(.05f, "loading kitchen door...");
 
     this->kitchenDoorLModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/leftkdoor.obj");
     std::shared_ptr<Door> kitchenDoorL = std::make_shared<Door>(*basicShader, *kitchenDoorLModel, glm::vec3(10.1, 1.86, -3.5), 0,  glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)); // hinge points towards pos z
     kitchenDoorL->initialize();
     this->addGameObject(kitchenDoorL);
     kitchenDoorL->addToWorld(world);
-    progressCallback(.1f, "loading kitchen door2...");
+    progressCallback(.05f, "loading kitchen door2...");
 
     this->kitchenDoorRModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/rightkdoor.obj");
     std::shared_ptr<Door> kitchenDoorR = std::make_shared<Door>(*basicShader, *kitchenDoorRModel, glm::vec3(10.1, 1.86, 3.47), 0, glm::vec3(0, -1, 0), glm::vec3(0, 0, -1));
     kitchenDoorR->initialize();
     this->addGameObject(kitchenDoorR);
     kitchenDoorR->addToWorld(world);
-    progressCallback(.1f, "loading kitchen door3...");
+    progressCallback(.05f, "loading kitchen door3...");
 
     this->dumpsterLidDoorModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/dumpsterliddoor.obj");
     //std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 4.27, 10.632), 90, glm::vec3(-1, 0, 0));
@@ -153,13 +156,13 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     dumpsterLidDoor->initialize();
     this->addGameObject(dumpsterLidDoor);
     dumpsterLidDoor->addToWorld(world);
-    progressCallback(.1f, "loading kitchen door4...");
+    progressCallback(.05f, "loading kitchen door4...");
 
     // this->arrowsModel = std::make_shared<Model>((char*)"resources/g2.obj");
     // progressCallback(.1f);
 
     this->kitchenItemsModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchenitems2.obj");
-    this->kitchenModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitcheninterior3.obj");
+    this->kitchenModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchen.obj");
     progressCallback(.05f, "loading kitchen...");
     this->terrain = std::make_shared<Terrain>(*kitchenModel);
     terrain->initTerrain();
@@ -175,26 +178,31 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     this->carrotModel = std::make_shared<Model>((char*)"resources/characters/carrot4.gltf");
     this->testAnim = new Animation("resources/characters/carrot4.gltf", this->carrotModel.get());
     this->animator = std::make_shared<Animator>(testAnim);
-
+    progressCallback(.05f, "initializing player...");
     this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn, "resources/characters/arms4.gltf");
     player->initialize();
     this->player->addToWorld(this->world);
-    progressCallback(.1f, "initializing player...");
 
     this->playerPosTxt = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 24, 400, 10);
     this->ui.addTextElement(this->playerPosTxt.get());
-
+    progressCallback(.05f, "initializing restaurant...");
     this->restaurantModel = std::make_shared<Model>((char*)"resources/buildings/restaurant/restaurant.obj");
+    progressCallback(.05f, "initializing restaurant items...");
     this->restaurantItemsModel = std::make_shared<Model>((char*)"resources/buildings/restaurant/restaurantitems.obj");
     this->restaurantTerrain = std::make_shared<Terrain>(*this->restaurantModel);
     this->restaurantTerrain->initTerrain();
     this->restaurantTerrain->addToWorld(world);
-
+    progressCallback(.05f, "initializing office...");
     this->officeModel = std::make_shared<Model>((char*)"resources/buildings/office/office.obj");
+    progressCallback(.05f, "initializing office items...");
     this->officeItemsModel = std::make_shared<Model>((char*)"resources/buildings/office/officeitems.obj");
+    progressCallback(.05f, "initializing office terrain...");
     this->officeTerrain = std::make_shared<Terrain>(*this->officeModel);
     this->officeTerrain->initTerrain();
     this->officeTerrain->addToWorld(world);
+
+    this->bossGuyBillboardModel = std::make_shared<Model>((char*)"resources/buildings/office/officeboss.obj");
+    this->bossGuyBillboard = std::make_shared<BillboardEntity>(*this->bossGuyBillboardModel, glm::vec3(0,0,0), glm::vec3(1.0, 1.0, 1.0));
 
     this->initialized = true;
     std::cout << "DONE" << std::endl;
