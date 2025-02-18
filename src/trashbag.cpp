@@ -22,7 +22,6 @@ void TrashBag::addToWorld(btDiscreteDynamicsWorld *world) {
 
 void TrashBag::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 projection, float curTime) {
     if(selected) {
-        std::cout << "trash selected" << std::endl;
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glEnable(GL_STENCIL_TEST);
