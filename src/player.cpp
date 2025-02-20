@@ -68,6 +68,8 @@ void Player::render(float curTime, float deltaTime) {
     bonesShader->setMat4("projection", projection);
     bonesShader->setMat4("view", view);
     bonesShader->setMat4("model", model);
+    bonesShader->setVec3("lightPos", this->getPlayerHandPos());
+    bonesShader->setVec3("lightColor", glm::vec3(1.0, 1.0, 1.0));
     for (int i = 0; i < transforms.size(); ++i) {
         this->bonesShader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
     }

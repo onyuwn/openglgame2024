@@ -14,7 +14,6 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 
         this->world->stepSimulation(deltaTime * 3.0f, 7);
         this->player->UpdatePlayer(curTime, deltaTime, window, paused);
-        this->animator->updateAnimation(deltaTime);
         glm::vec3 playerPos = this->player->getPlayerPos();
         std::stringstream ppStream;
         ppStream << playerPos.x << ", " << playerPos.y << ", " << playerPos.z;
@@ -26,36 +25,29 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos());
-        //glm::mat4 view = camera.GetViewMatrix(glm::vec3(0,0,0));
+
+        this->player->render(curTime, deltaTime);
+        glm::mat4 model = glm::mat4(1.0f);
+        this->waterShader->use();
+        waterShader->setMat4("projection", projection);
+        waterShader->setMat4("view", view);
+        waterShader->setFloat("time", curTime);
+        waterShader->setVec3("playerPos", this->player->getPlayerPos());
+        model = glm::translate(model, glm::vec3(-5.0, 2.0, 0.0));
+        model = glm::scale(model, glm::vec3(10.0, 10.0, 10.0));
+        waterShader->setMat4("model", model);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        this->waterModel->draw(*this->waterShader);
 
         this->basicShader->use();
         basicShader->setMat4("projection", projection);
         basicShader->setMat4("view", view);
-        glm::mat4 model = glm::mat4(1.0f);
-
         basicShader->setMat4("model", model);
-        this->kitchenItemsModel->draw(*this->basicShader);
-
-        for(int i = 0; i < this->models.size(); i++) {}
-
-        auto transforms = this->animator->getFinalBoneMatrices();
-        this->bonesShader->use();
-        bonesShader->setMat4("projection", projection);
-        bonesShader->setMat4("view", view);
-        model = glm::translate(model, glm::vec3(-.25, 0, 12));
-        bonesShader->setMat4("model", model);
-        for (int i = 0; i < transforms.size(); ++i) {
-            this->bonesShader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
-        }
-        this->carrotModel->draw(*this->bonesShader, curTime);
-
-        this->player->render(curTime, deltaTime);
-        this->basicShader->use();
+        this->basicShader->setVec3("lightPos", this->player->getPlayerPos());
+        this->basicShader->setVec3("lightColor", glm::vec3(1.0, 1.0, 1.0));
         this->restaurantItemsModel->draw(*this->basicShader);
-        this->officeItemsModel->draw(*this->basicShader);
-        this->terrain->render(*this->basicShader);
-        this->desertTerrain->render(*this->basicShader);
-        this->officeTerrain->render(*this->basicShader);
+        //this->restaurantExtModel->draw(*this->basicShader);
+        this->restaurantFacadeModel->draw(*this->basicShader);
         this->restaurantTerrain->render(*this->basicShader);
 
         for(int i = 0; i < this->gameObjects.size(); i++) {
@@ -69,7 +61,8 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
             world->debugDrawWorld();
         }
 
-        this->bossGuyBillboard->render(view, projection, this->camera.Up, this->camera.Right);
+        this->bossGuyBillboard->render(view, projection, this->camera.Up, this->camera.Right, this->player->getPlayerPos());
+        this->bushBillboard->render(view, projection, this->camera.Up, this->camera.Right, this->player->getPlayerPos());
 
         this->postProcessor->render();
 
@@ -86,6 +79,7 @@ void MainScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 void MainScene::initialize(std::function<void(float, std::string)> progressCallback) {
     this->basicShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     this->bonesShader = std::make_shared<Shader>("src/shaders/bones.vs", "src/shaders/basic.fs");
+    this->waterShader = std::make_shared<Shader>("src/shaders/water.vs", "src/shaders/water.fs");
 
     std::vector<std::string> skyboxFaces = { // rgba
         "resources/mainskybox/gradiesn.png",
@@ -113,14 +107,6 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     stbi_set_flip_vertically_on_load(false);
     world->setGravity(btVector3(0,-9.81f,0));
 
-    this->piggyModel = std::make_shared<Model>((char*)"resources/piggyiso.obj");
-    std::shared_ptr<Piggy> piggy = std::make_shared<Piggy>("Piggy", *basicShader, *piggyModel);
-    piggy->initialize();
-    this->addGameObject(piggy);
-    piggy->addToWorld(this->world);
-    progressCallback(.05f, "loading piggies...");
-    progressCallback(.05f, "hi :_)...");
-
     this->trashModel = std::make_shared<Model>((char*)"resources/trash/trashbag.obj");
     std::shared_ptr<TrashBag> trashBag = std::make_shared<TrashBag>(*basicShader, *trashModel);
     trashBag->initialize();
@@ -129,55 +115,6 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     progressCallback(.05f, "loading trash...");
     progressCallback(.05f, "mygofd...");
 
-    this->kitchenDoorModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchendoors1.obj");
-    std::shared_ptr<Door> door = std::make_shared<Door>(*basicShader, *kitchenDoorModel, glm::vec3(8.7, 1.86, 10.42));
-    door->initialize();
-    this->addGameObject(door);
-    door->addToWorld(world);
-    progressCallback(.05f, "loading kitchen door...");
-
-    this->kitchenDoorLModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/leftkdoor.obj");
-    std::shared_ptr<Door> kitchenDoorL = std::make_shared<Door>(*basicShader, *kitchenDoorLModel, glm::vec3(10.1, 1.86, -3.5), 0,  glm::vec3(0, 1, 0), glm::vec3(0, 0, 1)); // hinge points towards pos z
-    kitchenDoorL->initialize();
-    this->addGameObject(kitchenDoorL);
-    kitchenDoorL->addToWorld(world);
-    progressCallback(.05f, "loading kitchen door2...");
-
-    this->kitchenDoorRModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/rightkdoor.obj");
-    std::shared_ptr<Door> kitchenDoorR = std::make_shared<Door>(*basicShader, *kitchenDoorRModel, glm::vec3(10.1, 1.86, 3.47), 0, glm::vec3(0, -1, 0), glm::vec3(0, 0, -1));
-    kitchenDoorR->initialize();
-    this->addGameObject(kitchenDoorR);
-    kitchenDoorR->addToWorld(world);
-    progressCallback(.05f, "loading kitchen door3...");
-
-    this->dumpsterLidDoorModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/dumpsterliddoor.obj");
-    //std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 4.27, 10.632), 90, glm::vec3(-1, 0, 0));
-    std::shared_ptr<Door> dumpsterLidDoor = std::make_shared<Door>(*basicShader, *dumpsterLidDoorModel, glm::vec3(-2.5, 4.27, 10.632), 0, glm::vec3(-1, 0, 0), glm::vec3(0,1,0));
-    dumpsterLidDoor->initialize();
-    this->addGameObject(dumpsterLidDoor);
-    dumpsterLidDoor->addToWorld(world);
-    progressCallback(.05f, "loading kitchen door4...");
-
-    // this->arrowsModel = std::make_shared<Model>((char*)"resources/g2.obj");
-    // progressCallback(.1f);
-
-    this->kitchenItemsModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchenitems2.obj");
-    this->kitchenModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchen.obj");
-    progressCallback(.05f, "loading kitchen...");
-    this->terrain = std::make_shared<Terrain>(*kitchenModel);
-    terrain->initTerrain();
-    terrain->addToWorld(world);
-    progressCallback(.05f, "creating kitchen terrain...");
-
-    this->desertTerrainModel = std::make_shared<Model>((char*)"resources/buildings/kitchen/kitchendesertterrain.obj");
-    this->desertTerrain = std::make_shared<Terrain>(*desertTerrainModel);
-    desertTerrain->initTerrain();
-    desertTerrain->addToWorld(world);
-    progressCallback(.05f, "creating desert terrain...");
-
-    this->carrotModel = std::make_shared<Model>((char*)"resources/characters/carrot4.gltf");
-    this->testAnim = new Animation("resources/characters/carrot4.gltf", this->carrotModel.get());
-    this->animator = std::make_shared<Animator>(testAnim);
     progressCallback(.05f, "initializing player...");
     this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn, "resources/characters/arms4.gltf");
     player->initialize();
@@ -186,23 +123,20 @@ void MainScene::initialize(std::function<void(float, std::string)> progressCallb
     this->playerPosTxt = std::make_shared<UITextElement>("resources/text/Angelic Peace.ttf", "X", 24, 400, 10);
     this->ui.addTextElement(this->playerPosTxt.get());
     progressCallback(.05f, "initializing restaurant...");
-    this->restaurantModel = std::make_shared<Model>((char*)"resources/buildings/restaurant/restaurant.obj");
+    this->restaurantModel = std::make_shared<Model>((char*)"resources/buildings/restaurantv2/restaurant.obj");
     progressCallback(.05f, "initializing restaurant items...");
-    this->restaurantItemsModel = std::make_shared<Model>((char*)"resources/buildings/restaurant/restaurantitems.obj");
+    this->restaurantItemsModel = std::make_shared<Model>((char*)"resources/buildings/restaurantv2/restaurantitems.obj");
+    this->restaurantFacadeModel = std::make_shared<Model>((char*)"resources/buildings/restaurantv2/restaurantfacade.obj");
+    //this->restaurantExtModel = std::make_shared<Model>((char*)"resources/buildings/restaurantv2/restaurantext.obj");
+    this->bushBillboardModel = std::make_shared<Model>((char*)"resources/buildings/bush2.obj");
+    this->waterModel = std::make_shared<Model>((char*)"resources/buildings/water.obj");
+    this->bushBillboard = std::make_shared<BillboardEntity>(*this->bushBillboardModel, glm::vec3(10, 3, 10), glm::vec3(3.0, 3.0, 3.0));
     this->restaurantTerrain = std::make_shared<Terrain>(*this->restaurantModel);
     this->restaurantTerrain->initTerrain();
     this->restaurantTerrain->addToWorld(world);
-    progressCallback(.05f, "initializing office...");
-    this->officeModel = std::make_shared<Model>((char*)"resources/buildings/office/office.obj");
-    progressCallback(.05f, "initializing office items...");
-    this->officeItemsModel = std::make_shared<Model>((char*)"resources/buildings/office/officeitems.obj");
-    progressCallback(.05f, "initializing office terrain...");
-    this->officeTerrain = std::make_shared<Terrain>(*this->officeModel);
-    this->officeTerrain->initTerrain();
-    this->officeTerrain->addToWorld(world);
 
     this->bossGuyBillboardModel = std::make_shared<Model>((char*)"resources/buildings/office/officeboss.obj");
-    this->bossGuyBillboard = std::make_shared<BillboardEntity>(*this->bossGuyBillboardModel, glm::vec3(0,0,0), glm::vec3(1.0, 1.0, 1.0));
+    this->bossGuyBillboard = std::make_shared<BillboardEntity>(*this->bossGuyBillboardModel, glm::vec3(0,3,0), glm::vec3(3.0, 3.0, 3.0));
 
     this->initialized = true;
     std::cout << "DONE" << std::endl;

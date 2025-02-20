@@ -111,7 +111,7 @@ int main()
     MuseumScene *museumScene = new MuseumScene("museumscene", ui, camera);
     sceneMap.insert({"main", scene1});
     sceneMap.insert({"museum", museumScene});
-    curScene = sceneMap["museum"];
+    curScene = sceneMap["main"];
 
     ProgressBar progressBar1;
     bool closeCallback;

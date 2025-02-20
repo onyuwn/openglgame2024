@@ -7,6 +7,7 @@ layout (location = 2) in vec2 aTexCoords;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 TexCoords;
+out vec3 fragPos;
 
 // Values that stay constant for the whole mesh.
 uniform vec3 cameraRightWorldSpace;
@@ -28,6 +29,6 @@ void main()
 
 	// Output position of the vertex
 	gl_Position = (projection * view) * vec4(vertexPosition_worldspace, 1.0f);
-
+    fragPos = vertexPosition_worldspace;
     TexCoords = aTexCoords;
 }

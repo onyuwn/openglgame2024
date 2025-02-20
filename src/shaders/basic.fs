@@ -2,32 +2,29 @@
 out vec4 FragColor;
 
 in vec2 TexCoords;
+in vec3 normal;
+in vec3 fragPos;
 
 uniform sampler2D texture_diffuse1;
-uniform bool selected;
+uniform vec3 lightPos;  
+uniform vec3 lightColor;
+uniform vec3 playerPos;
 
 void main()
 {   
-    vec4 diffuse = texture(texture_diffuse1, TexCoords);
+    float ambientStrength = 0.1;
+    vec3 ambient = ambientStrength * lightColor;
+    vec4 objectColor = texture(texture_diffuse1, TexCoords);
 
-    if(diffuse.a < 0.1) {
+    if(objectColor.a < 0.1) {
         discard;
     }
 
-    // if(selected) {
-    //     float borderThicknessX = 4.0 / 800;  
-    //     float borderThicknessY = 4.0 / 600;  
+    vec3 norm = normalize(normal);
+    vec3 lightDir = normalize(lightPos - fragPos); 
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * lightColor;
+    vec3 result = (ambient + diffuse) * objectColor.xyz;
 
-    //     if(TexCoords.x < borderThicknessX || TexCoords.x > 1.0 - borderThicknessX) {
-    //         float c = sin(TexCoords.x * 50 + TexCoords.y * 50);
-    //         diffuse = vec4(0.0, 1.0 - c, 0.0, 1.0 - c);
-    //     }
-
-    //     if(TexCoords.y < borderThicknessY || TexCoords.y > 1.0 - borderThicknessY) {
-    //         float c = sin(TexCoords.x * 50 + TexCoords.y * 50);
-    //         diffuse = vec4(0.0, 1.0 - c, 0.0, 1.0 - c);
-    //     }   
-    // }
-
-    FragColor = diffuse;
+    FragColor = vec4(result, objectColor.a);
 }

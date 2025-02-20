@@ -2,12 +2,16 @@
 out vec4 FragColor;
 
 in vec2 TexCoords;
+in vec3 fragPos;
 
 uniform sampler2D texture_diffuse1;
+uniform vec3 playerPos;
 
 void main()
 {   
-    vec4 diffuse = texture(texture_diffuse1, TexCoords);
+    vec2 newUv = TexCoords;
+    newUv.xy *= (distance(playerPos.xz, fragPos.xz) - 1.0) / 10.0;
+    vec4 diffuse = texture(texture_diffuse1, newUv);
     //vec4 diffuse = vec4(1.0, 0.0, 0.0, 1.0);
 
     if(diffuse.a < 0.1) {

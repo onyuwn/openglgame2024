@@ -20,6 +20,9 @@ void MuseumScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         basicShader->setMat4("projection", projection);
         basicShader->setMat4("view", view);
 
+        this->basicShader->setVec3("lightPos", this->player->getPlayerPos());
+        this->basicShader->setVec3("lightColor", glm::vec3(1.0, 1.0, 1.0));
+
         glm::mat4 model = glm::mat4(1.0f);
         basicShader->setMat4("model", model);
         this->museumItemsModel->draw(*this->basicShader);

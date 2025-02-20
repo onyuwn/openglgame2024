@@ -5,6 +5,7 @@ unsigned int shaderProgram;
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
+    std::cout << "LOADING SHADERS: " << vertexPath << " " << fragmentPath << std::endl;
     std::string vertexCode;
     std::string fragmentCode;
     std::ifstream vShaderFile;
@@ -97,6 +98,10 @@ void Shader::setFloat(const std::string &name, float value) const {
 
 void Shader::setVec2(const std::string &name, const glm::vec2 &value) const {
     glUniform2fv(glGetUniformLocation(shaderProgram, name.c_str()), 1, &value[0]);
+}
+
+void Shader::setVec3(const std::string &name, const glm::vec3 &value) const {
+    glUniform3fv(glGetUniformLocation(shaderProgram, name.c_str()), 1, &value[0]);
 }
 
 void Shader::setVec4(const std::string &name, const glm::vec4 &value) const {

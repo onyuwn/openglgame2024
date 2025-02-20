@@ -16,10 +16,11 @@ void BillboardEntity::setPos(glm::vec3 pos) {
     this->position = pos;
 }
 
-void BillboardEntity::render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, glm::vec3 up, glm::vec3 right) {
+void BillboardEntity::render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, glm::vec3 up, glm::vec3 right, glm::vec3 playerPos) {
     this->billboardShader.use();
     this->billboardShader.setMat4("projection", projectionMatrix);
     this->billboardShader.setMat4("view", viewMatrix);
+    this->billboardShader.setVec3("playerPos", playerPos);
     unsigned int cameraRightLoc = glGetUniformLocation(this->billboardShader.shaderProgram, "cameraRightWorldSpace");
     if(cameraRightLoc == -1) {
         printf("FAILED TO INIT CAMERARIGHT");

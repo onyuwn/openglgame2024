@@ -14,7 +14,7 @@ vec3 texsample(const float x, const float y, vec2 fragCoord)
 
 vec3 texfilter(vec2 fragCoord)
 {
-    float offset = 1.0 / 300.0; // yuh
+    float offset = 1.0 / 500.0; // yuh
     vec3 sum = texsample(-offset, -offset, fragCoord) * 0.
              + texsample(-offset,  0, fragCoord) * -1.
              + texsample(-offset,  offset, fragCoord) * 0.
